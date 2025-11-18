@@ -1,0 +1,58 @@
+# ---- OS / Editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ---- Node / Frontend ----
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+coverage/
+dist/
+build/
+.next/
+.out/
+.eslintcache
+
+# ---- Python / Backend ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.venv/
+venv/
+.envrc
+
+# ---- Environment / Secrets ----
+# 実際の環境変数ファイルはコミットしない
+.env
+.env.*
+*.local
+*.secret
+*.key
+
+# ただしサンプルファイルはコミットしたい
+!.env.example
+
+# ---- Logs ----
+*.log
+logs/
+debug.log
+
+# ---- Docker ----
+# Docker のビルド成果物やローカル用 override を除外
+docker-compose.override.yml
+.tmp/
+.cache/
+
+# ---- Misc ----
+# ビルドや生成物をここに追加していく
+
