@@ -1,6 +1,7 @@
 # 株価ビューア（GCP / Cloud Run）
 
 yfinance を用いて株価チャートを表示する Web アプリケーションです。  
+※ ChatGPTを積極的に活用していきます。
 
 - 認証付き Web アプリの構築  
 - 外部 API（yfinance）を用いたデータ取得  
