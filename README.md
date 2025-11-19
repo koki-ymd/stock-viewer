@@ -78,7 +78,7 @@ stock-viewer/
 <details>
 <summary> 手順1 </summary>
   
-参考ブランチ: feature/dev-container
+参考: [PR #1 – feat: setup unified dev container for Python and Node development](https://github.com/koki-ymd/stock-viewer/pull/1)
 - Dockerfile.dev、docker-compose.dev.ymlの作成
 - Dockerfile.devはpython・node.jsを含める開発用コンテナ
 - FastAPI/yfinance用のrequirementsはこの段階では入れていない
