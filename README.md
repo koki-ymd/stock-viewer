@@ -14,7 +14,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ## 🚀 このリポジトリについて
 
-- **状態:** 初期セットアップ中（Step 0–3）
+- **状態:** 最小のバックエンドを構成した（手順2）
 - **目的:**
   - GCP（特に Cloud Run）を用いたコンテナアプリの構築経験を示す
   - フロント／バックエンド／インフラを 1 リポジトリで統合管理する
@@ -43,7 +43,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 **バックエンド**
 
-- Python + FastAPI（予定）
+- Python + FastAPI
 - yfinance による株価取得
 
 **インフラ（GCP）**
@@ -66,14 +66,14 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 stock-viewer/
   README.md
   .gitignore
-  backend/        # Python + FastAPI + yfinance （予定）
+  backend/        # Python + FastAPI + yfinance
   frontend/       # React + TypeScript （予定）
   infra/          # Dockerfile, Cloud Run 用設定, IaC 等（予定）
 ```
 
 ---
 
-## 手順について
+## 実装した手順について
 進行度に合わせて更新してきます。
 <details>
 <summary> 手順1 </summary>
@@ -82,4 +82,23 @@ stock-viewer/
 - Dockerfile.dev、docker-compose.dev.ymlの作成
 - Dockerfile.devはpython・node.jsを含める開発用コンテナ
 - FastAPI/yfinance用のrequirementsはこの段階では入れていない
+</details>
+
+<details>
+  <summary> 手順2 </summary>
+
+  参考: [PR #3 - feat: add minimal FastAPI backend with requirements and main.py](https://github.com/koki-ymd/stock-viewer/pull/3)
+  - 本プロジェクトにおける最小のバックエンドを構成(FastAPI + yfinance)
+  - 実装した機能
+    - /health: アプリの生死を確認可能
+    - /stocks/{symbol}/history: 指定したsymbolの銘柄データを取得（ローソク足の情報を取得）
+    - /stocks/search: ダミー（今後、クエリで銘柄検索を可能にする予定）
+  - uvicornの起動コマンド
+    ```
+    uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    ```
+  - 動作確認 (uvicorn起動後)
+    - ヘルスチェック: <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a>
+    - API動作確認: <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a>
+    
 </details>
