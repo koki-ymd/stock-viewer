@@ -70,3 +70,10 @@ stock-viewer/
   frontend/       # React + TypeScript （予定）
   infra/          # Dockerfile, Cloud Run 用設定, IaC 等（予定）
 
+## 手順について
+進行度に合わせて更新してきます。
+<summary> 手順1 </summary>
+参考ブランチ: feature/dev-container
+- Dockerfile.dev、docker-compose.dev.ymlの作成
+- Dockerfile.devはpython・node.jsを含める開発用コンテナ
+- FastAPI/yfinance用のrequirementsはこの段階では入れていない
