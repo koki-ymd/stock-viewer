@@ -5,7 +5,7 @@ ChatGPTを用いて何をしたか書く
 
 ### 2025-11-19
 - 手順1として、Docker開発環境の準備を行った
-- ブランチはfeature/dev-container
+- 参考: [PR #1 – feat: setup unified dev container for Python and Node development](https://github.com/koki-ymd/stock-viewer/pull/1)
 - Dockerfile.devの出力
 - docker-compose.dev.ymlの出力を行った
 - 出力したDockerfile.devがよくわからなかったので、それを理解するための実践型チュートリアルを作成した
