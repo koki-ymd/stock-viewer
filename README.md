@@ -82,6 +82,14 @@ stock-viewer/
 - Dockerfile.dev、docker-compose.dev.ymlの作成
 - Dockerfile.devはpython・node.jsを含める開発用コンテナ
 - FastAPI/yfinance用のrequirementsはこの段階では入れていない
+- 開発用コンテナの起動コマンド
+  ```
+  docker-compose -f infra/docker-compose.dev.yml up -d --build
+  ```
+- 開発用コンテナへ入るコマンド
+  ```
+  docker-compose -f infra/docker-compose.dev.yml exec app bash
+  ```
 </details>
 
 <details>
