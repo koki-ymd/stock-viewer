@@ -1,0 +1,30 @@
+# Python ベースイメージ（Debian系）
+FROM python:3.12
+
+# 必要なツールをインストール（curl など）
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg && \
+    rm -rf /var/lib/apt/lists/*
+
+# NodeSource の LTS 用セットアップスクリプトを使って
+# apt 経由で Node.js LTS をインストール
+# （これにより `apt-get install nodejs` で LTS が入る）
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# 作業ディレクトリを /app に
+WORKDIR /app
+
+# （任意）Python パッケージのインストールは後で requirements を用意してからでOK
+# 先にファイルを用意している場合は、例えばこんな感じで追加できます：
+# COPY infra/requirements.dev.txt /tmp/requirements.dev.txt
+# RUN pip install --no-cache-dir -r /tmp/requirements.dev.txt
+
+# デフォルトはシェルで入れるようにしておく（開発用コンテナ）
+CMD ["bash"]
+
