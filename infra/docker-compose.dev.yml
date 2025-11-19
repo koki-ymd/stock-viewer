@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  app:
+    image: stock-viewer-dev
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dev
+    working_dir: /app
+    volumes:
+      - ..:/app
+    ports:
+      - "8000:8000"   # FastAPI 予定
+      - "5173:5173"   # Vite (React) 予定
+    environment:
+      - PYTHONUNBUFFERED=1
+    # ひとまずコンテナを起こしておくだけ
+    command: tail -f /dev/null
