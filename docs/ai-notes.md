@@ -24,3 +24,24 @@ ChatGPTを用いて何をしたか書く
     - /stocks/search : ダミー（今後、クエリで銘柄検索できる予定）
   - uvicornを起動し、アプリを確認した
   - ここで作成したAPIに基づいてapi.mdを更新した
+
+### 2025-11-20
+- 手順3の一部として、フロントエンドの骨子を作成した
+  - 参考: [PR #7 - feat: add dummy login and minimal home navigation (with prep library install)](https://github.com/koki-ymd/stock-viewer/pull/7)
+  - 参考: [PR #10 - feat: add home page features](https://github.com/koki-ymd/stock-viewer/pull/10)
+  - frontendプロジェクトの初期化手順の生成を行なった
+    - viteのテンプレート(React + TS)をインストールした
+    - viteサーバーを起動し、テンプレートが表示されることを確認した
+  - 簡易ログイン画面と最小限のホーム画面を作成し、ログイン->ホーム画面の遷移を確認した
+    - ログイン画面はダミー認証
+    - ホーム画面は「ログイン成功です」の文字を表示するページ
+  - React.jsとTSの強みについて確認した
+  - Homeの機能を小さく実装し、データの取得がうまくいっているかを確認した
+    - 銘柄検索によるデータ取得
+    - データのリスト表示
+    - お気に入り銘柄の登録 (インメモリ)
+  - データを取得する際、CORSの設定をしていなかったので、CORSの設定をした
+    - 参考: [PR #8 - feat: enable CORS for frontend development](https://github.com/koki-ymd/stock-viewer/pull/8)
+    - CORSの設定について、あらかじめ生成した手順には載っていなかった
+    - バックエンド側の実装として、手順2として実装した
+
