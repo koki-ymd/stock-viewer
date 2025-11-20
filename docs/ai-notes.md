@@ -41,6 +41,7 @@ ChatGPTを用いて何をしたか書く
     - データのリスト表示
     - お気に入り銘柄の登録 (インメモリ)
   - データを取得する際、CORSの設定をしていなかったので、CORSの設定をした
+    - 参考: [PR #8 - feat: enable CORS for frontend development](https://github.com/koki-ymd/stock-viewer/pull/8)
     - CORSの設定について、あらかじめ生成した手順には載っていなかった
     - バックエンド側の実装として、手順2として実装した
 
