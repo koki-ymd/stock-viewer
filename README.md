@@ -120,3 +120,18 @@ stock-viewer/
       ```
     
 </details>
+
+<details>
+  <summary> 手順3 </summary>
+
+  参考: [PR #7 - feat: add dummy login and minimal home navigation (with prep library install)](https://github.com/koki-ymd/stock-viewer/pull/7)
+  - ダミーログインページと最小のhomeページを作成し、ログイン->homeへの遷移を確認した
+  - TODO: 認証ガード
+
+  参考: [PR #10 - feat: add home page features](https://github.com/koki-ymd/stock-viewer/pull/10)
+  - APIの取得を確認するため、機能を小さく実装
+    - 銘柄検索
+    - お気に入り銘柄の登録&検索
+    - 株価のリスト表示(TODO: チャート表示)
+</details>
+
