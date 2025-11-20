@@ -108,5 +108,15 @@ stock-viewer/
   - 動作確認 (uvicorn起動後)
     - ヘルスチェック: <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a>
     - API動作確認: <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a>
+
+  - CORS設定
+    - 参考: [PR #8 - feat: enable CORS for frontend development](https://github.com/koki-ymd/stock-viewer/pull/8)
+    - viteの開発サーバー(`http://localhost:5173`)からのリクエストを許可した
+    - フロントが未実装の時のCORS確認方法 (ブラウザのDevToolsから簡単なFetchを試す)
+      ```
+      fetch("http://localhost:8000/health", {
+        method: "GET",
+      }).then(res => res.json()).then(console.log);
+      ```
     
 </details>
