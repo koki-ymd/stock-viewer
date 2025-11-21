@@ -47,10 +47,12 @@ ChatGPTを用いて何をしたか書く
 
 ### 2025-11-21
 - 手順3の一部として、認証ガードとローソク足チャートの表示を行った
-  - 参考: [PR #19 - feat: add auth guard](https://github.com/koki-ymd/stock-viewer/pull/19)
   - 認証ラップコンポーネントパターンによる認証ガードを実装した
+    - 参考: [PR #19 - feat: add auth guard](https://github.com/koki-ymd/stock-viewer/pull/19)
     - コードはChagGPTが生成
+  
   - ローソク足チャートの表示を実装した
+    - 参考: [PR #18 - feat: implement candlestick chart component (refs #14)](https://github.com/koki-ymd/stock-viewer/pull/18)
     - ライブラリをrechartsからlightweight-chartsに変更
       - rechartsではローソク足の表示に向かなかった
       - 手順生成の段階でローソク足について言及せず、単にチャート表示としていたことで、rechartsを使う想定になっていた
