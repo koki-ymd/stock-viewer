@@ -82,14 +82,6 @@ stock-viewer/
 - Dockerfile.dev、docker-compose.dev.ymlの作成
 - Dockerfile.devはpython・node.jsを含める開発用コンテナ
 - FastAPI/yfinance用のrequirementsはこの段階では入れていない
-- 開発用コンテナの起動コマンド
-  ```
-  docker-compose -f infra/docker-compose.dev.yml up -d --build
-  ```
-- 開発用コンテナへ入るコマンド
-  ```
-  docker-compose -f infra/docker-compose.dev.yml exec app bash
-  ```
 </details>
 
 <details>
@@ -101,14 +93,6 @@ stock-viewer/
     - /health: アプリの生死を確認可能
     - /stocks/{symbol}/history: 指定したsymbolの銘柄データを取得（ローソク足の情報を取得）
     - /stocks/search: ダミー（今後、クエリで銘柄検索を可能にする予定）
-  - uvicornの起動コマンド
-    ```
-    uvicorn main:app --reload --host 0.0.0.0 --port 8000
-    ```
-  - 動作確認 (uvicorn起動後)
-    - ヘルスチェック: <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a>
-    - API動作確認: <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a>
-
   - CORS設定
     - 参考: [PR #8 - feat: enable CORS for frontend development](https://github.com/koki-ymd/stock-viewer/pull/8)
     - viteの開発サーバー(`http://localhost:5173`)からのリクエストを許可した
@@ -118,7 +102,6 @@ stock-viewer/
         method: "GET",
       }).then(res => res.json()).then(console.log);
       ```
-    
 </details>
 
 <details>
@@ -135,3 +118,58 @@ stock-viewer/
     - 株価のリスト表示(TODO: チャート表示)
 </details>
 
+---
+## 開発環境での起動方法
+ローカルでフロントエンド／バックエンドを動かして動作確認する際の手順をまとめます。
+
+開発用コンテナのワーキングディレクトリは/appです。
+
+### 開発用コンテナの起動/ログイン
+```
+docker-compose -f infra/docker-compose.dev.yml up -d --build
+docker-compose -f infra/docker-compose.dev.yml exec app bash
+```
+### Backend（FastAPI）の起動方法
+FastAPI は uvicorn を使用して起動します。  
+#### 初回セットアップ
+
+```
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+#### uvicornの起動 (/app/backend)
+venvをアクティブにした状態で以下の起動コマンドを実行
+```
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+- `--reload` : 開発中の自動リロード
+- `--host 0.0.0.0` : コンテナ外（ホスト）からアクセス可能
+
+#### 動作確認 (uvicorn起動後)
+- ヘルスチェック: <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a>
+- API動作確認: <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a>
+
+### Frontend（Vite）の起動方法
+#### 初回セットアップ
+使用するパッケージマネージャーはnpmを想定
+```
+cd frontend
+npm install
+```
+#### Viteの起動 (/app/frontend)
+```
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+- `--host 0.0.0.0` : コンテナ外（ホスト）からアクセス可能
+- `--port 5173` : Viteのデフォルトポート
+#### 動作確認 (Vite起動後)
+- <a href="http://localhost:5173" target="_blank">http://localhost:5173</a>
+
+### FrontendとBackendの接続確認
+`http://localhost:8000/health` をフロント（`http://localhost:5173`）から叩いた際に「CORS error」が出ていないことを確認してください。
+（Network タブで該当リクエストをクリックし、「Headers → Response Headers」に  `access-control-allow-origin` が存在することを確認する。）
+
+
+※ 将来的に .env を使用する場合は .env.example に必要な項目を追加します。
