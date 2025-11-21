@@ -14,7 +14,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ## 🚀 このリポジトリについて
 
-- **状態:** フロントエンドの作成(認証ガード、ローソク足チャートは未実装)（手順3）
+- **状態:** フロントエンドの作成をした（ダミー認証機能、株価データのローソク足チャート表示）（手順3）
 - **目的:**
   - GCP（特に Cloud Run）を用いたコンテナアプリの構築経験を示す
   - フロント／バックエンド／インフラを 1 リポジトリで統合管理する
@@ -39,7 +39,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 **フロントエンド**
 
 - React + TypeScript  
-- UI ライブラリ等は今後選定
+- lightweight-chartsによるローソク足チャートを表示
 
 **バックエンド**
 
@@ -109,13 +109,22 @@ stock-viewer/
 
   参考: [PR #7 - feat: add dummy login and minimal home navigation (with prep library install)](https://github.com/koki-ymd/stock-viewer/pull/7)
   - ダミーログインページと最小のhomeページを作成し、ログイン->homeへの遷移を確認した
-  - TODO: 認証ガード
+
+ 参考: [PR #19 - feat: add auth guard](https://github.com/koki-ymd/stock-viewer/pull/19)
+ - 認証ガードの実装をした
+ - 認証ラップコンポーネントパターンについて
+   - 認証済みか否かを判定するコンポーネントで、認証が必要なページをラッピングするパターン
+   - ユーザーがHome（認証が必要なページ）にアクセスした際、ログイン済みユーザーか否かを判定
+     - ログイン済みユーザーならHomeを返す
+     - ログインしていないユーザーなら/loginへの遷移を返す
+   - 認証済みか否かの判定処理を分離できるため、認証方法の変更がしやすい
 
   参考: [PR #10 - feat: add home page features](https://github.com/koki-ymd/stock-viewer/pull/10)
   - APIの取得を確認するため、機能を小さく実装
     - 銘柄検索
     - お気に入り銘柄の登録&検索
-    - 株価のリスト表示(TODO: チャート表示)
+    - 株価のローソク足チャート表示
+      - データ数を制限しているため、チャートのチルト・パン・ズームイン・ズームアウトを制限した
 </details>
 
 ---
