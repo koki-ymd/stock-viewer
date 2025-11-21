@@ -14,7 +14,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ## 🚀 このリポジトリについて
 
-- **状態:** 最小のバックエンドを構成した（手順2）
+- **状態:** フロントエンドの作成(認証ガード、ローソク足チャートは未実装)（手順3）
 - **目的:**
   - GCP（特に Cloud Run）を用いたコンテナアプリの構築経験を示す
   - フロント／バックエンド／インフラを 1 リポジトリで統合管理する
@@ -67,7 +67,7 @@ stock-viewer/
   README.md
   .gitignore
   backend/        # Python + FastAPI + yfinance
-  frontend/       # React + TypeScript （予定）
+  frontend/       # React + TypeScript
   infra/          # Dockerfile, Cloud Run 用設定, IaC 等（予定）
 ```
 
