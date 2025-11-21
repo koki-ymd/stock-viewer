@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   // 入力フォーム用
@@ -14,6 +16,7 @@ const Login = () => {
 
     // ★ ここがダミー認証
     if (username === "test" && password === "password") {
+      login();
       navigate("/");
     } else {
       alert("ユーザー名またはパスワードが違います");
