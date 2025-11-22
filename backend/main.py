@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers.auth import router as auth_router
 from routers.stocks import router as stocks_router
 
 app = FastAPI(title="Stock Viewer API")
@@ -25,3 +26,7 @@ def health():
 
 # /stocks以下のエンドポイントを登録
 app.include_router(stocks_router)
+
+# 認証ルータを登録
+app.include_router(auth_router)
+
