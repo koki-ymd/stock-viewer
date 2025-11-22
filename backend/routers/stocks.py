@@ -1,10 +1,12 @@
 # backend/routers/stocks.py
 from typing import List, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from schemas.stocks import StockCandle
+from schemas.user import UserRead
 from services.stocks_service import fetch_stock_history
+from services.auth_service import get_current_user
 
 router = APIRouter(
     prefix="/stocks",
@@ -33,7 +35,9 @@ def get_stock_history(
     "/search",
     summary="銘柄検索（ダミー実装）",
 )
-def search_stocks(query: str | None = None):
+def search_stocks(
+    query: str | None = None,
+):
     return {
         "query": query,
         "items": [],
