@@ -23,7 +23,6 @@ def get_stock_history(
     symbol: str,
     period: str = "1mo",
     interval: str = "1d",
-    current_user: UserRead = Depends(get_current_user),
 ):
     """
     指定銘柄の株価履歴を取得するエンドポイント。
@@ -38,7 +37,6 @@ def get_stock_history(
 )
 def search_stocks(
     query: str | None = None,
-    current_user: UserRead = Depends(get_current_user),
 ):
     return {
         "query": query,
