@@ -14,7 +14,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ## 🚀 このリポジトリについて
 
-- **状態:** フロントエンドの作成をした（ダミー認証機能、株価データのローソク足チャート表示）（手順3）
+- **状態:** ダミー認証機能・銘柄コード検索によるローソク足チャート表示・お気に入り機能（手順4）
 - **目的:**
   - GCP（特に Cloud Run）を用いたコンテナアプリの構築経験を示す
   - フロント／バックエンド／インフラを 1 リポジトリで統合管理する
@@ -26,15 +26,13 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ## 📱 アプリ概要（MVP）
 
-### 🔧 機能（予定）
-
+### 🔧 機能
 - ユーザー認証（ログイン／ログアウト）
-- 銘柄検索または銘柄一覧からの選択
-- 選択した銘柄の株価チャート表示
+- 銘柄コードによる過去データ取得
+- 検索した銘柄の株価チャートをローソク足で表示
 - お気に入り銘柄の登録／削除
-- スマホ・PC の双方に最適化された UI
 
-### 🧰 技術スタック（予定）
+### 🧰 技術スタック
 
 **フロントエンド**
 
@@ -46,7 +44,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 - Python + FastAPI
 - yfinance による株価取得
 
-**インフラ（GCP）**
+**インフラ（GCP）(予定)**
 
 - Cloud Run（アプリケーション実行）
 - Cloud Build（CI/CD）
@@ -58,9 +56,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ---
 
-## 📦 ディレクトリ構成（予定）
-
-実装前のため、現時点では最低限の構成です。
+## 📦 ディレクトリ構成概観
 
 ```text
 stock-viewer/
@@ -122,9 +118,33 @@ stock-viewer/
   参考: [PR #10 - feat: add home page features](https://github.com/koki-ymd/stock-viewer/pull/10)
   - APIの取得を確認するため、機能を小さく実装
     - 銘柄検索
-    - お気に入り銘柄の登録&検索
+    - お気に入り銘柄の登録&検索(フロント内の変数に保存)
     - 株価のローソク足チャート表示
       - データ数を制限しているため、チャートのチルト・パン・ズームイン・ズームアウトを制限した
+</details>
+
+<details>
+  <summary> 手順4 ダミートークンを返すLogin APIの実装 & 銘柄お気に入り機能 </summary>
+  
+  参考: [PR #25 - feature: backend authentication](https://github.com/koki-ymd/stock-viewer/pull/25)
+  - backend側の認証機能の実装
+    - ダミーユーザーの追加
+    - 固定ダミートークンを返すLogin APIの実装
+    - /auth/meで認証テスト可能
+
+  参考: [PR #27 - feature: add favorites api](https://github.com/koki-ymd/stock-viewer/pull/27)
+  - お気に入りAPIの追加
+    - お気に入りダミーDBの作成(辞書型の変数で一時的なもの)
+
+  参考: [PR #29 - feature: frontend auth with token](https://github.com/koki-ymd/stock-viewer/pull/29)
+  - フロントエンドのログインがバックエンドのLogin APIを叩きトークンを保存するようにした
+  - トークンの保存場所はlocalStorage
+
+  参考: [PR #30 - feature: frontend add favorites feature](https://github.com/koki-ymd/stock-viewer/pull/30)
+  - お気に入りAPIを叩いてユーザーに依存したお気に入りを取得するようにした
+  - トークンをAuthorization headerにつける共通関数の実装
+    - 認証が必要なAPIはこの関数を使用する
+
 </details>
 
 ---
