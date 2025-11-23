@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { loginApi } from "../api/auth";
 
 const Login = () => {
   const { login } = useAuth();
@@ -10,16 +11,25 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  // ダミー認証（フロントだけで判定）
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const [loading, setLoading] = useState(false);
 
-    // ★ ここがダミー認証
-    if (username === "test" && password === "password") {
-      login();
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // API層からログイン処理を呼ぶ
+      const result = await loginApi(username);
+
+      // グローバルなログイン状態の更新(AuthContext)
+      login(result.access_token);
+      
       navigate("/");
-    } else {
-      alert("ユーザー名またはパスワードが違います");
+    } catch (err) {
+      console.error(err);
+      alert("ログインに失敗しました");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,18 +58,8 @@ const Login = () => {
           />
         </div>
 
-        <button
-          type="submit"
-          style={{
-            width: "100%",
-            padding: "8px",
-            background: "#007bff",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer"
-          }}
-        >
-          Login
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
