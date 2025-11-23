@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers.auth import router as auth_router
 from routers.stocks import router as stocks_router
+from routers.favorites import router as favorites_router
 
 app = FastAPI(title="Stock Viewer API")
 
@@ -29,4 +30,7 @@ app.include_router(stocks_router)
 
 # 認証ルータを登録
 app.include_router(auth_router)
+
+# お気に入り機能エンドポイントを登録
+app.include_router(favorites_router)
 
