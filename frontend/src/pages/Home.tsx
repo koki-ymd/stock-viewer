@@ -1,93 +1,23 @@
 // src/pages/Home.tsx
-import { useState, useEffect } from "react";
-
 import { StockSearchForm } from "../components/home/StockSearchForm";
 import { StockChart } from "../components/home/StockChart";
 import { FavoritesList } from "../components/home/FavoritesList";
-import type { StockHistoryPoint } from "../types/stock";
-
-import { fetchFavoritesApi, toggleFavoriteApi } from "../api/favorites";
+import { useStockViewer } from "../hooks/useStockViewer";
 
 const Home: React.FC = () => {
-  const [symbolInput, setSymbolInput] = useState("");
-  const [currentSymbol, setCurrentSymbol] = useState<string | null>(null);
-  const [history, setHistory] = useState<StockHistoryPoint[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // 初回マウント時にダミー銘柄やお気に入りを読み込む場合があればここ
-  useEffect(() => {
-    const loadFavorites = async () => {
-      try {
-        const list = await fetchFavoritesApi();
-        setFavorites(Array.isArray(list) ? list : []);
-      } catch (e) {
-        console.error("お気に入り取得に失敗", e);
-        setFavorites([]); // エラー時は空配列にしておく
-      }
-    };
-
-    loadFavorites();
-  }, []);
-
-  const fetchHistory = async (symbol: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const res = await fetch(
-        `http://localhost:8000/stocks/${encodeURIComponent(symbol)}/history`
-      );
-
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
-      }
-
-      const data: StockHistoryPoint[] = await res.json();
-      setHistory(data);
-      setCurrentSymbol(symbol);
-    } catch (e: any) {
-      setError(e.message ?? "データ取得に失敗しました");
-      setHistory([]);
-      setCurrentSymbol(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 検索フォームから呼ばれる
-  const handleSearchSubmit = () => {
-    if (!symbolInput.trim()) return;
-    fetchHistory(symbolInput.trim().toUpperCase());
-  };
-
-  // お気に入りに追加
-  const handleAddFavorite = async () => {
-    if (!currentSymbol) return;
-    try {
-      const updated = await toggleFavoriteApi(currentSymbol);
-      setFavorites(updated);
-    } catch (e) {
-      console.error("お気に入りトグルに失敗", e);
-    }
-  };
-
-  // お気に入り一覧で銘柄クリック
-  const handleSelectFavorite = (symbol: string) => {
-    setSymbolInput(symbol);
-    fetchHistory(symbol);
-  };
-
-  // お気に入り一覧で削除
-  const handleRemoveFavorite = async (symbol: string) => {
-    try {
-      const updated = await toggleFavoriteApi(symbol);
-      setFavorites(updated);
-    } catch (e) {
-      console.error("お気に入り削除に失敗", e);
-    }
-  };
+  const {
+    symbolInput,
+    currentSymbol,
+    history,
+    favorites,
+    loading,
+    error,
+    setSymbolInput,
+    handleSearchSubmit,
+    handleAddFavorite,
+    handleSelectFavorite,
+    handleRemoveFavorite,
+  } = useStockViewer();
 
   return (
     <div style={{ maxWidth: 960, margin: "0 auto", padding: "16px" }}>
@@ -123,3 +53,4 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
