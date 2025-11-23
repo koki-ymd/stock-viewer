@@ -1,11 +1,10 @@
 # backend/routers/favorites.py
 from fastapi import APIRouter, Depends
-from schemas.favorites import FavoriteRequest, FavoritesResponse
-from schemas.user import UserRead
+
+from schemas import UserRead, FavoriteRequest, FavoritesResponse
 from services import favorites_service, auth_service
 
 router = APIRouter(prefix="/favorites", tags=["favorites"])
-
 
 @router.get("/", response_model=FavoritesResponse)
 def get_favorites(

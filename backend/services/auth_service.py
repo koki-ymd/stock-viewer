@@ -4,7 +4,7 @@ from typing import Dict
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from schemas.user import UserRead
+from schemas import UserRead
 
 # =========================
 # ダミーユーザー & トークン
@@ -27,7 +27,7 @@ _TOKEN_USER_MAP: Dict[str, str] = {
 security = HTTPBearer(auto_error=False)
 
 
-def register_user(username: str) -> UserRead:
+def _register_user(username: str) -> UserRead:
     """
     ユーザーをダミーDBに登録（すでにあればそのまま返す）。
     ダミー段階 では login_user から内部的に使うだけ。
@@ -47,7 +47,7 @@ def login_user(username: str) -> str:
     - 無ければ register_user してからトークンを返す
     - 返すトークンは常に DUMMY_TOKEN
     """
-    register_user(username)
+    _register_user(username)
     return DUMMY_TOKEN
 
 

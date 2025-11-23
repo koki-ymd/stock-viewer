@@ -2,9 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers.auth import router as auth_router
-from routers.stocks import router as stocks_router
-from routers.favorites import router as favorites_router
+from routers import auth_router, favorites_router, stocks_router
 
 app = FastAPI(title="Stock Viewer API")
 

@@ -3,10 +3,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
-from schemas.stocks import StockCandle
-from schemas.user import UserRead
-from services.stocks_service import fetch_stock_history
-from services.auth_service import get_current_user
+from schemas import UserRead, StockCandle
+from services import stocks_service
 
 router = APIRouter(
     prefix="/stocks",
@@ -28,7 +26,7 @@ def get_stock_history(
     指定銘柄の株価履歴を取得するエンドポイント。
     実際の取得ロジックは services.stocks_service に委譲する。
     """
-    return fetch_stock_history(symbol=symbol, period=period, interval=interval)
+    return stocks_service.fetch_stock_history(symbol=symbol, period=period, interval=interval)
 
 
 @router.get(

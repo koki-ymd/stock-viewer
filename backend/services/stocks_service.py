@@ -4,7 +4,7 @@ from typing import List
 import yfinance as yf
 from fastapi import HTTPException
 
-from schemas.stocks import StockCandle
+from schemas import StockCandle
 
 
 def fetch_stock_history(
