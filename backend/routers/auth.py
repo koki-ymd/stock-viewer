@@ -1,8 +1,7 @@
 # backend/routers/auth_router.py
 from fastapi import APIRouter, Depends
 
-from schemas.auth import LoginRequest, TokenResponse
-from schemas.user import UserRead
+from schemas import UserRead, LoginRequest, TokenResponse
 from services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
