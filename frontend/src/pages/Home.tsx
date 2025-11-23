@@ -1,9 +1,12 @@
 // src/pages/Home.tsx
 import { useState, useEffect } from "react";
+
 import { StockSearchForm } from "../components/home/StockSearchForm";
 import { StockChart } from "../components/home/StockChart";
 import { FavoritesList } from "../components/home/FavoritesList";
 import type { StockHistoryPoint } from "../types/stock";
+
+import { fetchFavoritesApi, toggleFavoriteApi } from "../api/favorites";
 
 const Home: React.FC = () => {
   const [symbolInput, setSymbolInput] = useState("");
@@ -15,7 +18,17 @@ const Home: React.FC = () => {
 
   // 初回マウント時にダミー銘柄やお気に入りを読み込む場合があればここ
   useEffect(() => {
-    // 例: setFavorites(["AAPL", "GOOGL"]);
+    const loadFavorites = async () => {
+      try {
+        const list = await fetchFavoritesApi();
+        setFavorites(Array.isArray(list) ? list : []);
+      } catch (e) {
+        console.error("お気に入り取得に失敗", e);
+        setFavorites([]); // エラー時は空配列にしておく
+      }
+    };
+
+    loadFavorites();
   }, []);
 
   const fetchHistory = async (symbol: string) => {
@@ -50,10 +63,14 @@ const Home: React.FC = () => {
   };
 
   // お気に入りに追加
-  const handleAddFavorite = () => {
+  const handleAddFavorite = async () => {
     if (!currentSymbol) return;
-    if (favorites.includes(currentSymbol)) return;
-    setFavorites((prev) => [...prev, currentSymbol]);
+    try {
+      const updated = await toggleFavoriteApi(currentSymbol);
+      setFavorites(updated);
+    } catch (e) {
+      console.error("お気に入りトグルに失敗", e);
+    }
   };
 
   // お気に入り一覧で銘柄クリック
@@ -63,8 +80,13 @@ const Home: React.FC = () => {
   };
 
   // お気に入り一覧で削除
-  const handleRemoveFavorite = (symbol: string) => {
-    setFavorites((prev) => prev.filter((s) => s !== symbol));
+  const handleRemoveFavorite = async (symbol: string) => {
+    try {
+      const updated = await toggleFavoriteApi(symbol);
+      setFavorites(updated);
+    } catch (e) {
+      console.error("お気に入り削除に失敗", e);
+    }
   };
 
   return (
