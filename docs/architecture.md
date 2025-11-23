@@ -18,17 +18,18 @@
 
 ## 2. 要件とゴール
 
-### 2-1. 機能要件（実装済の内容まで(手順3)）
+### 2-1. 機能要件（実装済の内容まで(手順4)）
 
 - 銘柄コードの入力・検索  
 - 指定銘柄の株価データ取得（yfinance 利用）  
 - ローソク足チャートの表示（lightweight-charts）
+- ユーザー認証(ダミーユーザーのみ)
+- お気に入り銘柄の登録・一覧表示
 
 ### 2-2. 機能要件（今後の予定）
 
-- ユーザー認証（まずはダミー認証 → 自前 JWT → Firebase Auth の流れを検討)
-- お気に入り銘柄の登録・一覧表示  
-- ユーザーごとのお気に入り状態の保存
+- ユーザー認証（ダミー認証(実装済) → 自前 JWT → Firebase Auth の流れを検討)
+- ユーザー登録 (検討中)
 
 ### 2-3. 非機能要件
 
@@ -47,13 +48,16 @@
   - ユーザー操作入力  
   - 銘柄検索  
   - チャート表示  
-  - 今後：認証・認証状態管理・お気に入りUI
+  - 認証・認証状態管理
+  - お気に入りUI
 
 - **Backend（FastAPI）**  
   - API 提供（/health, /stocks）  
   - yfinance を利用した外部データ取得  
   - データ整形（OHLC 形式）  
-  - 今後：認証・お気に入り管理
+  - 認証 (ダミー)
+  - お気に入り管理
+  - 今後: 認証機能の強化(JWTの発行->Firebase Auth)
 
 - **External API**  
   - yfinance（Yahoo Finance データ取得ライブラリ）
@@ -66,8 +70,8 @@
 
 ```mermaid
 flowchart LR
-  User["User (Browser)"] --> FE[Frontend\nReact + TypeScript]
-  FE --> BE[Backend\nFastAPI API Server]
+  User["User (Browser)"] --> FE["Frontend<br/>React + TypeScript"]
+  FE --> BE["Backend<br/>FastAPI API Server"]
   BE --> YF["yfinance<br/>(Yahoo Finance)"]
 
   subgraph "Local Dev (Docker)"
@@ -85,10 +89,11 @@ flowchart LR
 - フロントエンドから API リクエストを受け取る  
 - yfinance を使って株価データを取得  
 - チャート表示に必要なデータ形式に整形  
-- JSON としてフロントエンドへ返却  
-- 将来的に認証・お気に入り管理を担当
+- JSON としてフロントエンドへ返却
+- 認証機能: ダミートークンの発行
+- お気に入り管理(辞書型変数によるダミーDB)
 
-### 4-2. 主なエンドポイント（手順3時点）
+### 4-2. 主なエンドポイント
 
 ---
 
@@ -131,6 +136,26 @@ YY, ZZについて指定できるパラメータの[参考](https://ranaroussi.g
 ]
 ```
 
+#### **GET /favorites**
+用途: ログイン中のユーザーのお気に入り銘柄一覧を取得する。
+
+**Header**
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**レスポンス例**
+```json
+{
+  "user_id": "user1",
+  "symbols": [
+    "7203.T",
+    "AAPL"
+  ]
+}
+```
+
 ---
 
 ### 4-3. ディレクトリ構成
@@ -140,10 +165,17 @@ backend/
   main.py
   routers/
     stocks.py
+    auth.py
+    favorites.py
   services/
     stocks_service.py
+    auth_service.py
+    favorites_service.py
   schemas/
     stocks.py
+    auth.py
+    favorites.py
+    user.py
   requirements.txt
 infra/
   docker-compose.dev.yml
@@ -158,11 +190,12 @@ infra/
 
 - ユーザーが検索した銘柄をバックエンドに送信  
 - 取得した株価データを Lightweight Charts で表示
-- 今後の実装、認証 UI・お気に入り銘柄一覧
+- 認証 UI
+- お気に入り銘柄一覧
 
-### 5-2. 画面構成（手順3）
+### 5-2. 画面構成
 - `/login`
-  - 認証 UI（現在、フロント実装のみのダミーユーザーでログイン可能）
+  - 認証 UI
 
 - `/`  
   - 検索フォーム  
@@ -177,12 +210,20 @@ frontend/src/
   pages/
     Home.tsx
     Login.tsx
+  api/
+    auth.ts
+    favorites.ts
+    stocks.ts 
   components/
     ProtectedRoute.tsx
     home/
       StockSearchForm.tsx
       StockChart.tsx
       FavoriteList.tsx
+  hooks/
+    useStockViewer.ts
+  context/
+    AuthContext.tsx
   types/
     stocks.ts
 ```
@@ -210,24 +251,36 @@ frontend/src/
 
 ## 7. 認証・認可（現状と今後）
 
-### 現状（手順3）
-- 認証は未実装
-- フロントエンドのみのダミーユーザーあり
-- フロントエンドのみの認証ガード実装済
+### 現状（手順4）
+- バックエンド
+  - 認証(ダミーユーザー)
+  - Login APIはユーザーに関わらずダミートークンを返す
+- フロントエンド
+  - ログイン時にLogin APIを叩き、トークンを保存
+  - 認証が必要なAPIを使用する際は、AuthorizationヘッダーにBearer <token>をつけてリクエスト
 
-### 今後（手順4）
-- ダミーユーザー を用いた認証の仮実装   
-- お気に入り機能 `/favorites` の追加
-
-### 将来
-- 自前 JWT  
-- Firebase Auth などのマネージド認証へ移行可能な構成に
+### 今後（手順5）
+- トークンをJWTにする
+- JWT発行を試した後、Firebase Authを使用
 
 ---
 
-## 8. データフロー（手順3時点）
+## 8. データフロー（手順4時点）
+### UC-1: ログイン (ダミー認証)
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant FE as Frontend
+  participant BE as Backend
 
-### UC-1: 株価チャート閲覧
+  U->>FE: ID/PW を入力してログイン
+  FE->>BE: POST /auth/login (ダミーユーザー)
+  BE-->>FE: トークン発行(dummy-token)
+  FE-->>U: 認証成功 & ローカルにトークン保存
+
+```
+
+### UC-2: 株価チャート閲覧
 
 ```mermaid
 sequenceDiagram
@@ -244,12 +297,53 @@ sequenceDiagram
   FE-->>U: ローソク足チャート描画
 ```
 
+### UC-3: お気に入りの追加
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant FE as Frontend
+  participant BE as Backend
+
+  U->>FE: 「お気に入りに追加」をクリック
+  FE->>BE: POST /favorites {symbol}
+  BE-->>FE: ["AAPL", symbol, ...]
+  FE-->>U: UI を更新
+
+```
+
+### UC-4: お気に入り一覧の取得
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant FE as Frontend
+  participant BE as Backend
+
+  U->>FE: ホーム画面を開く
+  FE->>BE: GET /favorites
+  BE-->>FE: ["AAPL", "GOOG", ...]
+  FE-->>U: 一覧を表示
+
+```
+
+### UC-5: 認証ガードによる保護された画面へのアクセス
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant FE as Frontend
+  participant BE as Backend
+
+  U->>FE: "/" にアクセス
+  FE->>FE: ProtectedRoute がトークンをチェック
+  FE-->>U: 未認証なら /login にリダイレクト
+
+```
+
 ---
 
 ## 9. 技術的な工夫・トレードオフ
 
 - **yfinance の採用**  
-  → 手軽に株価データにアクセス可能
+  → Yahoo!Financeの非公式であるため不安定だが、手軽に株価データにアクセス可能
 - **Cloud Run 前提の設計**  
   → スケールアウト、コスト最適化、コンテナベースのため
 - **認証の段階的導入**  
@@ -263,24 +357,15 @@ sequenceDiagram
 | 1  | Docker 開発環境構築  | 完了   |
 | 2  | FastAPI サーバの構築 | 完了   |
 | 3  | チャート表示機能, フロントのガード認証（ProtectedRouteパターン）  | 完了   |
-| 4  | 擬似認証 + お気に入り機能   | これから |
-| 5  | 認証の強化, Cloud Run デプロイ | 予定   |
+| 4  | 擬似認証 + お気に入り機能   | 完了 |
+| 5  | 認証の強化, Cloud Run デプロイ | これから   |
 
-※ バックエンド側の認証ガードは FastAPI の Depends を利用し、
-   「トークン検証 → ユーザー取得」を行う get_current_user() 関数を共通化する方針。
-   この関数を各 API に適用することで、認可されたユーザーのみが
-   お気に入り API にアクセスできる構成とする。
+※ 認証の強化はダミートークンをJWTに変更、そして、Firebase Authを利用する予定
 
 ## 11. 今後の拡張予定
 
-- 手順4：
-  - バックエンドと連携した認証(ダミーユーザー)
-  - バックエンドのガード認証
-  - お気に入り API（GET/POST/DELETE）  
-  - フロント側のお気に入り UI
 - 手順5：
   - JWTによる認証の実装
   - JWT -> Firebase Authにする (本番想定の構成として検討)
   - Cloud Run デプロイ  
   - 本番相当環境での動作確認
-
