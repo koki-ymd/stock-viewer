@@ -26,6 +26,8 @@ FastAPI + yfinance によるバックエンド API の仕様。
 ## 共通仕様
 ### 認証
 - 以下のエンドポイントは共通してJWT認証が必要です:
+  - `GET /stocks/{symbol}/history`
+  - `GET /stocks/search`
   - `GET /auth/me`
   - `POST /favorites`
   - `GET /favorites`
@@ -77,6 +79,14 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 - 指定した銘柄シンボルの株価履歴（ローソク足）を取得します。
 - データは yfinance を使用して取得します。
+- **このエンドポイントは JWT 認証が必要です。**
+
+### リクエストヘッダ
+
+```http
+Authorization: Bearer <JWT access_token>
+Content-Type: application/json
+```
 
 ### パスパラメータ
 
@@ -121,6 +131,14 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 - 将来的に実装を検討している銘柄検索 API。
 - 現在はダミーレスポンスを返します。
+- **このエンドポイントは JWT 認証が必要です。**
+
+### リクエストヘッダ
+
+```http
+Authorization: Bearer <JWT access_token>
+Content-Type: application/json
+```
 
 ### クエリパラメータ
 
@@ -265,4 +283,5 @@ Content-Type: application/json
 ### エラー例
 - 401 Unauthorized（共通仕様を参照）
 - 422 Unprocessable Entity（バリデーションエラー時）
+
 
