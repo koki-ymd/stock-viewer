@@ -6,7 +6,9 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 ## ベース URL
 
-- ローカル開発環境: `http://localhost:8000`
+- ローカル開発環境: `http://localhost:8000/api`
+
+全てのエンドポイントは `/api` をプレフィックスに持つ
 
 ---
 
@@ -14,23 +16,23 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 | メソッド | パス                       | 説明                     | 状態 |
 |---------|----------------------------|--------------------------|------|
-| GET     | `/health`                  | ヘルスチェック           | 実装済 |
-| GET     | `/stocks/{symbol}/history` | 株価履歴（ローソク足）取得  | 実装済 |
-| GET     | `/stocks/search`           | 銘柄検索（ダミー）        | ダミー |
-| POST    | `/auth/login`              | JWT アクセストークン取得     | 実装済  |
-| GET     | `/auth/me`                 | 認証ガード動作確認        | 実装済 |
-| POST    | `/favorites`               | お気に入り登録・解除トグル   | 実装済 |
-| GET     | `/favorites`               | お気に入り一覧            | 実装済 |
+| GET     | `/api/health`                  | ヘルスチェック           | 実装済 |
+| GET     | `/api/stocks/{symbol}/history` | 株価履歴（ローソク足）取得  | 実装済 |
+| GET     | `/api/stocks/search`           | 銘柄検索（ダミー）        | ダミー |
+| POST    | `/api/auth/login`              | JWT アクセストークン取得     | 実装済  |
+| GET     | `/api/auth/me`                 | 認証ガード動作確認        | 実装済 |
+| POST    | `/api/favorites`               | お気に入り登録・解除トグル   | 実装済 |
+| GET     | `/api/favorites`               | お気に入り一覧            | 実装済 |
 ---
 
 ## 共通仕様
 ### 認証
 - 以下のエンドポイントは共通してJWT認証が必要です:
-  - `GET /stocks/{symbol}/history`
-  - `GET /stocks/search`
-  - `GET /auth/me`
-  - `POST /favorites`
-  - `GET /favorites`
+  - `GET /api/stocks/{symbol}/history`
+  - `GET /api/stocks/search`
+  - `GET /api/auth/me`
+  - `POST /api/favorites`
+  - `GET /api/favorites`
 
 **認証ヘッダ**
   ```text
@@ -57,7 +59,7 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 ---
 
-## GET /health
+## GET /api/health
 
 ### 説明
 アプリケーションが正常に動作しているか確認するためのエンドポイント。
@@ -73,7 +75,7 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 ---
 
-## GET /stocks/{symbol}/history
+## GET /api/stocks/{symbol}/history
 
 ### 説明
 
@@ -125,7 +127,7 @@ Content-Type: application/json
 
 ---
 
-## GET /stocks/search（ダミー）
+## GET /api/stocks/search（ダミー）
 
 ### 説明
 
@@ -161,7 +163,7 @@ Content-Type: application/json
 
 ---
 
-## POST /auth/login　（ダミーユーザーによるログイン）
+## POST /api/auth/login　（ダミーユーザーによるログイン）
 ### 説明
 - username を受け取り、存在しない場合はダミーDBにユーザー登録する。
 - JWT アクセストークンを発行して返します。
@@ -198,7 +200,7 @@ Content-Type: application/json
 
 ---
 
-## GET /auth/me
+## GET /api/auth/me
 ### 説明
 - 認証されたユーザー情報を返す API。
 - `Authorization: Bearer <JWT>` が必要。
@@ -216,7 +218,7 @@ Content-Type: application/json
 
 ---
 
-## POST /favorites
+## POST /api/favorites
 ### 説明
 - ログインユーザーのお気に入り銘柄を追加・削除する(リクエストしたシンボルが登録済なら削除するトグル形式)
 
@@ -259,7 +261,7 @@ Content-Type: application/json
 
 ---
 
-## GET /favorites
+## GET /api/favorites
 ### 説明
 - ログインユーザーのお気に入り一覧を取得
 ### リクエスト
@@ -283,5 +285,6 @@ Content-Type: application/json
 ### エラー例
 - 401 Unauthorized（共通仕様を参照）
 - 422 Unprocessable Entity（バリデーションエラー時）
+
 
 

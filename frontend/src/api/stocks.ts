@@ -13,7 +13,7 @@ export const fetchStockHistoryApi = async (
   });
 
   return apiClient.get<StockHistoryPoint[]>(
-    `/stocks/${encodeURIComponent(symbol)}/history?${params.toString()}`
+    `/api/stocks/${encodeURIComponent(symbol)}/history?${params.toString()}`
   );
 };
 

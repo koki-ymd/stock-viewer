@@ -1,0 +1,50 @@
+# infra/Dockerfile.prod
+
+# =====================================
+# Stage 1: Frontend build (Vite + React)
+# =====================================
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# 依存関係を先にインストール
+COPY frontend/package*.json ./
+RUN npm install
+
+# フロントエンドのソースコードをコピーしてビルド
+COPY frontend/ .
+RUN npm run build
+# → /frontend/dist が生成される
+
+# =====================================
+# Stage 2: Backend + Static files
+# =====================================
+FROM python:3.12-slim AS backend
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# （ビルドツールが必要になったらここで追加）
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends build-essential && \
+#     rm -rf /var/lib/apt/lists/*
+
+# ---- Python 依存関係のインストール ----
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ---- Backend ソースコード ----
+COPY backend/ .
+
+# ---- Frontend のビルド成果物を static としてコピー ----
+# FastAPI 側で StaticFiles(directory="static", html=True) を想定
+COPY --from=frontend-builder /frontend/dist ./static
+
+# Cloud Run が渡してくる PORT に対応
+EXPOSE 8080
+
+# Cloud Run / ローカルどちらでも動くように PORT を環境変数から読む
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+
