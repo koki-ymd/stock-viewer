@@ -1,0 +1,28 @@
+# OS / Editor
+.DS_Store
+.idea
+.vscode
+
+# Git
+.git
+.gitignore
+
+# Node (frontend)
+frontend/node_modules
+frontend/dist
+
+# Python (backend)
+backend/__pycache__
+*.py[cod]
+backend/.venv
+backend/venv
+
+# Docker
+infra/Dockerfile.dev
+infra/docker-compose*
+.tmp
+.cache
+
+# Logs
+*.log
+

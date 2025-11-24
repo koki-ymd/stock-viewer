@@ -8,7 +8,7 @@ type FavoritesResponse = {
 
 // お気に入り一覧
 export const fetchFavoritesApi = async (): Promise<string[]> => {
-  const data = await apiClient.get<FavoritesResponse>("/favorites");
+  const data = await apiClient.get<FavoritesResponse>("/api/favorites");
   return data.symbols;
 };
 
@@ -16,7 +16,7 @@ export const fetchFavoritesApi = async (): Promise<string[]> => {
 export const toggleFavoriteApi = async (
   symbol: string
 ): Promise<string[]> => {
-  const data = await apiClient.post<FavoritesResponse>("/favorites", {
+  const data = await apiClient.post<FavoritesResponse>("/api/favorites", {
     symbol,
   });
   return data.symbols;

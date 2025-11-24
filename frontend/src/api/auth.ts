@@ -4,7 +4,7 @@ import type { TokenResponse } from "../types/auth";
 
 export async function loginApi(username: string): Promise<TokenResponse> {
   return apiClient.post<TokenResponse>(
-    "/auth/login",
+    "/api/auth/login",
     { username },
     {
       auth: false, // ログイン時はトークン不要

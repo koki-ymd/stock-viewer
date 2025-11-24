@@ -8,11 +8,15 @@ services:
       dockerfile: infra/Dockerfile.dev
     working_dir: /app
     volumes:
-      - ..:/app
+      - ../backend:/app/backend
+      - ../frontend:/app/frontend
     ports:
       - "8000:8000"   # FastAPI 予定
       - "5173:5173"   # Vite (React) 予定
     environment:
       - PYTHONUNBUFFERED=1
+      - APP_ENV=local
+      - FRONTEND_ORIGIN=http://localhost:5173
+
     # ひとまずコンテナを起こしておくだけ
     command: tail -f /dev/null
