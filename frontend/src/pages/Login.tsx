@@ -9,6 +9,7 @@ const Login = () => {
 
   // 入力フォーム用
   const [username, setUsername] = useState("");
+  // 現時点ではバックエンドに password は送っていない（将来の実装用）
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -16,14 +17,20 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
+    if (!username.trim()) {
+      alert("ユーザー名を入力してください");
+      setLoading(false);
+      return;
+    }
 
     try {
       // API層からログイン処理を呼ぶ
       const result = await loginApi(username);
 
       // グローバルなログイン状態の更新(AuthContext)
-      login(result.access_token);
-      
+      login(result.access_token, result.expires_in_seconds);
+
       navigate("/");
     } catch (err) {
       console.error(err);
