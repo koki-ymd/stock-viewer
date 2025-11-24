@@ -14,11 +14,11 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 
 ## 🚀 このリポジトリについて
 
-- **状態:** ダミー認証機能・銘柄コード検索によるローソク足チャート表示・お気に入り機能（手順4）
+- **状態:** JWTベースの擬似認証・銘柄コード検索によるローソク足チャート表示・お気に入り機能
 - **目的:**
   - GCP（特に Cloud Run）を用いたコンテナアプリの構築経験を示す
   - フロント／バックエンド／インフラを 1 リポジトリで統合管理する
-  - 実務に近い CI/CD フロー（Cloud Build or GitHub Actions）も順次追加予定
+  - 実務に近い CI/CD フロー（Cloud Build or GitHub Actions）を検討中
 
 今後、進捗に応じてこの README を更新していきます。
 
@@ -124,26 +124,40 @@ stock-viewer/
 </details>
 
 <details>
-  <summary> 手順4 ダミートークンを返すLogin APIの実装 & 銘柄お気に入り機能 </summary>
+  <summary> 手順4 JWT Login APIの実装 & 銘柄お気に入り機能 </summary>
+  認証はダミートークンを実装したのち、JWTに改良した
   
   参考: [PR #25 - feature: backend authentication](https://github.com/koki-ymd/stock-viewer/pull/25)
-  - backend側の認証機能の実装
+  - backend側の認証機能の実装 (ダミートークン)
     - ダミーユーザーの追加
     - 固定ダミートークンを返すLogin APIの実装
-    - /auth/meで認証テスト可能
+    - /auth/meで認証テスト可能　(/auth/meに認証ガードを付与)
+
+  参考: [PR #38 - feature: backend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/38)
+  参考: [PR #40 - feature: stocks auth guard (refs #26)](https://github.com/koki-ymd/stock-viewer/pull/40)
+  - backend側のJWT擬似認証の実装
+    - インメモリユーザー + JWT 発行（/auth/login）
+    - 認証ガードをJWTを用いるようにした　
+    - /stocks API に JWT 認証ガードを付与
 
   参考: [PR #27 - feature: add favorites api](https://github.com/koki-ymd/stock-viewer/pull/27)
   - お気に入りAPIの追加
     - お気に入りダミーDBの作成(辞書型の変数で一時的なもの)
+    - /favorites に認証ガードを付与
 
   参考: [PR #29 - feature: frontend auth with token](https://github.com/koki-ymd/stock-viewer/pull/29)
-  - フロントエンドのログインがバックエンドのLogin APIを叩きトークンを保存するようにした
+  - フロントエンドのログインがバックエンドのLogin API(/auth/login)を叩きトークンを保存するようにした
   - トークンの保存場所はlocalStorage
 
   参考: [PR #30 - feature: frontend add favorites feature](https://github.com/koki-ymd/stock-viewer/pull/30)
   - お気に入りAPIを叩いてユーザーに依存したお気に入りを取得するようにした
   - トークンをAuthorization headerにつける共通関数の実装
     - 認証が必要なAPIはこの関数を使用する
+
+  参考: [PR #41 - feature: frontend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/41)
+  - Login 画面から /auth/login を叩いて JWT を取得
+  - AuthContext で auth_token と有効期限を localStorage に保持
+  - client.ts 経由で Authorization ヘッダーを自動付与
 
 </details>
 
