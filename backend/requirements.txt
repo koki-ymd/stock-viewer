@@ -21,8 +21,10 @@ protobuf==6.33.1
 pycparser==2.23
 pydantic==2.12.4
 pydantic_core==2.41.5
+pydantic-settings
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
+python-jose[cryptography]
 pytz==2025.2
 PyYAML==6.0.3
 requests==2.32.5
@@ -39,3 +41,4 @@ uvloop==0.22.1
 watchfiles==1.1.1
 websockets==15.0.1
 yfinance==0.2.66
+
