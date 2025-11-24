@@ -158,6 +158,8 @@ stock-viewer/
   - Login 画面から /auth/login を叩いて JWT を取得
   - AuthContext で auth_token と有効期限を localStorage に保持
   - client.ts 経由で Authorization ヘッダーを自動付与
+  - トークンの期限が切れたらログアウト(トークン、期限情報の削除のみ。画面リロードは行わない)
+    - ログアウトのタイミングは初期レンダーor手動によるアクション
 
 </details>
 
