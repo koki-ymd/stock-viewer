@@ -25,6 +25,7 @@
 - ローソク足チャートの表示（lightweight-charts）
 - ユーザー認証（インメモリのダミーユーザー + 自前 JWT）
 - お気に入り銘柄の登録・一覧表示
+- 株価取得、お気に入り機能の利用には認証が必要
 
 ### 2-2. 機能要件（今後の予定）
 
@@ -90,9 +91,11 @@ flowchart LR
 - yfinance を使って株価データを取得  
 - チャート表示に必要なデータ形式に整形  
 - JSON としてフロントエンドへ返却
-- 認証機能: インメモリのダミーユーザーに対する JWT の発行・検証
+- 認証機能: インメモリのユーザーに対する JWT の発行・検証
+  - 現在は辞書型変数によるダミーDBでユーザー管理
 - お気に入り管理（辞書型変数によるダミーDB）
 - Stocks API, Favorites API を JWT で保護
+  - get_current_userがデータ取得APIの前に走ることで認証ガードを実現
 
 
 ### 4-2. 主なエンドポイント
@@ -213,6 +216,7 @@ frontend/src/
     Home.tsx
     Login.tsx
   api/
+    client.ts
     auth.ts
     favorites.ts
     stocks.ts 
@@ -269,30 +273,37 @@ frontend/src/
         "expires_in_seconds": 3600
       }
       ```
-  - `GET /auth/me`
-    - `Authorization: Bearer <JWT>` を受け取り、トークン検証
-    - JWT の `sub` からユーザーを特定し、ユーザー情報を返す
-  - お気に入り API（`/favorites`）
-    - `Depends(get_current_user)` により JWT 認証が必須
-    - ユーザーごとにインメモリでお気に入り銘柄を管理
+  - `get_current_user`（認証ガード）
+    - すべての保護 API で使用する共通 Depends
+    - `Authorization: Bearer <JWT>` を検証し、不正または期限切れなら 401 を返却
+
+  - JWT で保護されるエンドポイント：
+    - `GET /auth/me`
+    - `GET /favorites`
+    - `POST /favorites`
+    - `GET /stocks/{symbol}/history`
+    - `GET /stocks/search`
+    - → Stocks API も含め、ユーザー固有のデータアクセス全てが保護対象となった
 
 - フロントエンド
-  - ログイン時に `POST /auth/login` を叩き、レスポンスの
-    `access_token` と `expires_in_seconds` を保存
-  - 認証が必要な API を叩くときは、ヘッダに
+  - `POST /auth/login` を呼び出し、`access_token` と `expires_in_seconds` を受け取る
+  - `AuthContext` が以下を管理
+    - `auth_token`（localStorage に保存）
+    - `auth_expires_at`（期限をミリ秒で保存）
+    - 有効期限切れの場合は自動的に未ログイン扱い
+  - API 呼び出し時は `api/client.ts` を通じて自動的にヘッダ付与：
     ```http
     Authorization: Bearer <access_token>
     ```
-    を付与してリクエストを送る
-  - トークンの有効期限は、`expires_in_seconds` を用いてフロント側で管理（今後拡張予定）
+  - `ProtectedRoute` が認証状態を参照し、未認証時は `/login` へリダイレクト
 
 ### 今後
 
-- Firebase Auth 等のマネージド認証基盤の導入を検討
-  - ユーザー登録・ログイン・パスワード管理を外部サービスに委譲
-  - バックエンド側では「Firebase 発行の ID トークンを検証して認可する API」としてシンプル化
-- お気に入り情報の永続化（RDB / NoSQL など）も合わせて検討
-
+- Firebase Auth などのマネージド認証サービスへ移行を検討
+  - ユーザー登録・ログイン・セキュリティ管理を外部に委譲
+  - バックエンド側は「Firebase の ID Token を検証して認可する API」へシンプル化
+- お気に入り情報やユーザー情報の永続化（RDB / NoSQL など）を検討
+- Cloud Run での本番運用向け構成の整備
 
 ---
 
@@ -324,7 +335,7 @@ sequenceDiagram
   participant YF as yfinance
 
   U->>FE: 銘柄コードを入力し「表示」をクリック
-  FE->>BE: GET /stocks/XXXX/history?period=YY&interval=ZZ
+  FE->>BE: GET /stocks/XXXX/history?period=YY&interval=ZZ <br/> Authorization: Bearer <JWT token>
   BE->>YF: 株価データ取得（XXXX）
   YF-->>BE: OHLC データ
   BE-->>FE: 整形済みチャートデータ
@@ -341,7 +352,7 @@ sequenceDiagram
   participant BE as Backend
 
   U->>FE: 「お気に入りに追加」をクリック
-  FE->>BE: POST /favorites {symbol}
+  FE->>BE: POST /favorites {symbol} <br/> Authorization: Bearer <JWT token>
   BE-->>FE: ["AAPL", symbol, ...]
   FE-->>U: UI を更新
 
@@ -357,7 +368,7 @@ sequenceDiagram
   participant BE as Backend
 
   U->>FE: ホーム画面を開く
-  FE->>BE: GET /favorites
+  FE->>BE: GET /favorites <br/> Authorization: Bearer <JWT token>
   BE-->>FE: ["AAPL", "GOOG", ...]
   FE-->>U: 一覧を表示
 
@@ -406,5 +417,6 @@ sequenceDiagram
   - JWT -> Firebase Authにする (本番想定の構成として検討)
   - Cloud Run デプロイ  
   - 本番相当環境での動作確認
+
 
 
