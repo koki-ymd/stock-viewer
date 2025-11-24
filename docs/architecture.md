@@ -53,7 +53,7 @@
   - お気に入りUI
 
 - **Backend（FastAPI）**  
-  - API 提供（/health, /stocks）  
+  - API 提供（/api/health, /api/stocks/*, /api/favorites）  
   - yfinance を利用した外部データ取得  
   - データ整形（OHLC 形式）  
   - 認証（インメモリのダミーユーザーに対する JWT 発行・検証）
@@ -102,7 +102,7 @@ flowchart LR
 
 ---
 
-#### **GET /health**
+#### **GET /api/health**
 
 用途：動作確認用ヘルスチェック
 
@@ -112,7 +112,7 @@ flowchart LR
 
 ---
 
-#### **GET /stocks/XXXX/history?period=YY&interval=ZZ**
+#### **GET /api/stocks/XXXX/history?period=YY&interval=ZZ**
 
 用途：指定された銘柄コードの株価データを取得する。
 
@@ -141,7 +141,7 @@ YY, ZZについて指定できるパラメータの[参考](https://ranaroussi.g
 ]
 ```
 
-#### **GET /favorites**
+#### **GET /api/favorites**
 用途: ログイン中のユーザーのお気に入り銘柄一覧を取得する。
 
 **Header**
@@ -181,10 +181,13 @@ backend/
     auth.py
     favorites.py
     user.py
+  core/
+    settings.py
   requirements.txt
 infra/
   docker-compose.dev.yml
   Dockerfile.dev
+  Dockerfile.prod
 ```
 
 ---
@@ -261,7 +264,7 @@ frontend/src/
 
 - バックエンド
   - インメモリのダミーユーザーを管理（実データベースは未使用）
-  - `POST /auth/login`
+  - `POST /api/auth/login`
     - `username` を受け取り、存在しなければダミーDBにユーザー登録
     - ユーザーIDを `sub` として含む JWT アクセストークンを発行
     - 有効期限は `.env` の `JWT_EXPIRE_MINUTES` で管理
@@ -278,15 +281,15 @@ frontend/src/
     - `Authorization: Bearer <JWT>` を検証し、不正または期限切れなら 401 を返却
 
   - JWT で保護されるエンドポイント：
-    - `GET /auth/me`
-    - `GET /favorites`
-    - `POST /favorites`
-    - `GET /stocks/{symbol}/history`
-    - `GET /stocks/search`
+    - `GET /api/auth/me`
+    - `GET /api/favorites`
+    - `POST /api/favorites`
+    - `GET /api/stocks/{symbol}/history`
+    - `GET /api/stocks/search`
     - → Stocks API も含め、ユーザー固有のデータアクセス全てが保護対象となった
 
 - フロントエンド
-  - `POST /auth/login` を呼び出し、`access_token` と `expires_in_seconds` を受け取る
+  - `POST /api/auth/login` を呼び出し、`access_token` と `expires_in_seconds` を受け取る
   - `AuthContext` が以下を管理
     - `auth_token`（localStorage に保存）
     - `auth_expires_at`（期限をミリ秒で保存）
@@ -295,7 +298,7 @@ frontend/src/
     ```http
     Authorization: Bearer <access_token>
     ```
-  - `ProtectedRoute` が認証状態を参照し、未認証時は `/login` へリダイレクト
+  - `ProtectedRoute` が認証状態を参照し、未認証時は `/api/login` へリダイレクト
 
 ### 今後
 
@@ -317,7 +320,7 @@ sequenceDiagram
   participant BE as Backend
 
   U->>FE: ユーザー名を入力してログイン
-  FE->>BE: POST /auth/login { "username": "user1" }
+  FE->>BE: POST /api/auth/login { "username": "user1" }
   BE->>BE: ダミーDBにユーザー登録 or 取得
   BE-->>FE: { access_token(JWT), token_type, expires_in_seconds }
   FE-->>U: 認証成功 & トークン・有効期限をローカルに保存
@@ -325,7 +328,7 @@ sequenceDiagram
 
 ### UC-2: 株価チャート閲覧
 
-※ フロントエンドは事前に /auth/login で取得した JWT を Authorization ヘッダに付与して Stocks API にアクセスする。
+※ フロントエンドは事前に /api/auth/login で取得した JWT を Authorization ヘッダに付与して Stocks API にアクセスする。
 
 ```mermaid
 sequenceDiagram
@@ -335,7 +338,7 @@ sequenceDiagram
   participant YF as yfinance
 
   U->>FE: 銘柄コードを入力し「表示」をクリック
-  FE->>BE: GET /stocks/XXXX/history?period=YY&interval=ZZ <br/> Authorization: Bearer <JWT token>
+  FE->>BE: GET /api/stocks/XXXX/history?period=YY&interval=ZZ <br/> Authorization: Bearer <JWT token>
   BE->>YF: 株価データ取得（XXXX）
   YF-->>BE: OHLC データ
   BE-->>FE: 整形済みチャートデータ
@@ -343,7 +346,7 @@ sequenceDiagram
 ```
 
 ### UC-3: お気に入りの追加
-※ フロントエンドは事前に /auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
+※ フロントエンドは事前に /api/auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
 
 ```mermaid
 sequenceDiagram
@@ -352,14 +355,14 @@ sequenceDiagram
   participant BE as Backend
 
   U->>FE: 「お気に入りに追加」をクリック
-  FE->>BE: POST /favorites {symbol} <br/> Authorization: Bearer <JWT token>
+  FE->>BE: POST /api/favorites {symbol} <br/> Authorization: Bearer <JWT token>
   BE-->>FE: ["AAPL", symbol, ...]
   FE-->>U: UI を更新
 
 ```
 
 ### UC-4: お気に入り一覧の取得
-※ フロントエンドは事前に /auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
+※ フロントエンドは事前に /api/auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
 
 ```mermaid
 sequenceDiagram
@@ -368,7 +371,7 @@ sequenceDiagram
   participant BE as Backend
 
   U->>FE: ホーム画面を開く
-  FE->>BE: GET /favorites <br/> Authorization: Bearer <JWT token>
+  FE->>BE: GET /api/favorites <br/> Authorization: Bearer <JWT token>
   BE-->>FE: ["AAPL", "GOOG", ...]
   FE-->>U: 一覧を表示
 
@@ -383,7 +386,7 @@ sequenceDiagram
 
   U->>FE: "/" にアクセス
   FE->>FE: ProtectedRoute がトークンをチェック
-  FE-->>U: 未認証なら /login にリダイレクト
+  FE-->>U: 未認証なら /api/login にリダイレクト
 
 ```
 
@@ -417,6 +420,7 @@ sequenceDiagram
   - JWT -> Firebase Authにする (本番想定の構成として検討)
   - Cloud Run デプロイ  
   - 本番相当環境での動作確認
+
 
 
 
