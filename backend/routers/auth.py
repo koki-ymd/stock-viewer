@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 
 from schemas import UserRead, LoginRequest, TokenResponse
 from services import auth_service
+from core.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -15,7 +16,10 @@ def login(body: LoginRequest):
     - 固定のダミートークンを返す
     """
     token = auth_service.login_user(body.username)
-    return TokenResponse(access_token=token)
+    return TokenResponse(
+                access_token=token,
+                expires_in_seconds=settings.JWT_EXPIRE_MINUTES * 60,
+            )
 
 
 @router.get("/me", response_model=UserRead)
