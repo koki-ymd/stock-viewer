@@ -1,6 +1,7 @@
 // src/api/client.ts
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+  // 末尾スラッシュがあっても二重スラッシュにならないように削る
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
