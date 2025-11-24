@@ -99,3 +99,19 @@ ChatGPTを用いて何をしたか書く
     - フロントの変数に保存していたものをFavoriteAPIを叩くようにした
     - FavoriteAPIが認証が必要なので、Authonticated HeaderにBaerer <token>をつける関数を作成した
     - コードはChatGPTが生成
+
+---
+
+### 2025-11-24
+- 手順4の一部としてダミートークンによる擬似認証をJWTによる擬似認証に変えた
+  - JWTの発行および検証
+    - 参考: [PR #38 - feature: backend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/38)
+    - コードはChatGPTが生成
+  - /stock/*にも認証ガードを設定
+    - 参考: [PR #40 - feature: stocks auth guard (refs #26)](https://github.com/koki-ymd/stock-viewer/pull/40)
+
+  - フロントエンドのJWT対応
+    - 参考: [PR #41 - feature: frontend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/41)
+    - トークンの期限が切れたらログアウト(トークン、期限情報の削除のみ。画面リロードは行わない)
+      - タイミングは初期レンダーor手動によるアクション
+    - コードはChatGPTが生成
