@@ -18,18 +18,18 @@
 
 ## 2. 要件とゴール
 
-### 2-1. 機能要件（実装済の内容まで(手順4)）
+### 2-1. 機能要件（実装済の内容まで）
 
 - 銘柄コードの入力・検索  
 - 指定銘柄の株価データ取得（yfinance 利用）  
 - ローソク足チャートの表示（lightweight-charts）
-- ユーザー認証(ダミーユーザーのみ)
+- ユーザー認証（インメモリのダミーユーザー + 自前 JWT）
 - お気に入り銘柄の登録・一覧表示
 
 ### 2-2. 機能要件（今後の予定）
 
-- ユーザー認証（ダミー認証(実装済) → 自前 JWT → Firebase Auth の流れを検討)
-- ユーザー登録 (検討中)
+- ユーザー認証（自前 JWT 認証済み → Firebase Auth 等のマネージド認証への移行を検討）
+- ユーザー登録（本格運用を想定した永続化ストレージでの管理を検討中）
 
 ### 2-3. 非機能要件
 
@@ -55,9 +55,9 @@
   - API 提供（/health, /stocks）  
   - yfinance を利用した外部データ取得  
   - データ整形（OHLC 形式）  
-  - 認証 (ダミー)
+  - 認証（インメモリのダミーユーザーに対する JWT 発行・検証）
   - お気に入り管理
-  - 今後: 認証機能の強化(JWTの発行->Firebase Auth)
+  - 今後: Firebase Auth など外部認証基盤への移行を検討
 
 - **External API**  
   - yfinance（Yahoo Finance データ取得ライブラリ）
@@ -90,8 +90,9 @@ flowchart LR
 - yfinance を使って株価データを取得  
 - チャート表示に必要なデータ形式に整形  
 - JSON としてフロントエンドへ返却
-- 認証機能: ダミートークンの発行
-- お気に入り管理(辞書型変数によるダミーDB)
+- 認証機能: インメモリのダミーユーザーに対する JWT の発行・検証
+- お気に入り管理（辞書型変数によるダミーDB）
+
 
 ### 4-2. 主なエンドポイント
 
@@ -251,33 +252,63 @@ frontend/src/
 
 ## 7. 認証・認可（現状と今後）
 
-### 現状（手順4）
-- バックエンド
-  - 認証(ダミーユーザー)
-  - Login APIはユーザーに関わらずダミートークンを返す
-- フロントエンド
-  - ログイン時にLogin APIを叩き、トークンを保存
-  - 認証が必要なAPIを使用する際は、AuthorizationヘッダーにBearer <token>をつけてリクエスト
+### 現状
 
-### 今後（手順5）
-- トークンをJWTにする
-- JWT発行を試した後、Firebase Authを使用
+- バックエンド
+  - インメモリのダミーユーザーを管理（実データベースは未使用）
+  - `POST /auth/login`
+    - `username` を受け取り、存在しなければダミーDBにユーザー登録
+    - ユーザーIDを `sub` として含む JWT アクセストークンを発行
+    - 有効期限は `.env` の `JWT_EXPIRE_MINUTES` で管理
+    - レスポンス例（概略）  
+      ```json
+      {
+        "access_token": "<jwt-token-string>",
+        "token_type": "bearer",
+        "expires_in_seconds": 3600
+      }
+      ```
+  - `GET /auth/me`
+    - `Authorization: Bearer <JWT>` を受け取り、トークン検証
+    - JWT の `sub` からユーザーを特定し、ユーザー情報を返す
+  - お気に入り API（`/favorites`）
+    - `Depends(get_current_user)` により JWT 認証が必須
+    - ユーザーごとにインメモリでお気に入り銘柄を管理
+
+- フロントエンド
+  - ログイン時に `POST /auth/login` を叩き、レスポンスの
+    `access_token` と `expires_in_seconds` を保存
+  - 認証が必要な API を叩くときは、ヘッダに
+    ```http
+    Authorization: Bearer <access_token>
+    ```
+    を付与してリクエストを送る
+  - トークンの有効期限は、`expires_in_seconds` を用いてフロント側で管理（今後拡張予定）
+
+### 今後
+
+- Firebase Auth 等のマネージド認証基盤の導入を検討
+  - ユーザー登録・ログイン・パスワード管理を外部サービスに委譲
+  - バックエンド側では「Firebase 発行の ID トークンを検証して認可する API」としてシンプル化
+- お気に入り情報の永続化（RDB / NoSQL など）も合わせて検討
+
 
 ---
 
-## 8. データフロー（手順4時点）
-### UC-1: ログイン (ダミー認証)
+## 8. データフロー
+### UC-1: ログイン（自前 JWT 認証）
+
 ```mermaid
 sequenceDiagram
   participant U as User
   participant FE as Frontend
   participant BE as Backend
 
-  U->>FE: ID/PW を入力してログイン
-  FE->>BE: POST /auth/login (ダミーユーザー)
-  BE-->>FE: トークン発行(dummy-token)
-  FE-->>U: 認証成功 & ローカルにトークン保存
-
+  U->>FE: ユーザー名を入力してログイン
+  FE->>BE: POST /auth/login { "username": "user1" }
+  BE->>BE: ダミーDBにユーザー登録 or 取得
+  BE-->>FE: { access_token(JWT), token_type, expires_in_seconds }
+  FE-->>U: 認証成功 & トークン・有効期限をローカルに保存
 ```
 
 ### UC-2: 株価チャート閲覧
@@ -357,15 +388,15 @@ sequenceDiagram
 | 1  | Docker 開発環境構築  | 完了   |
 | 2  | FastAPI サーバの構築 | 完了   |
 | 3  | チャート表示機能, フロントのガード認証（ProtectedRouteパターン）  | 完了   |
-| 4  | 擬似認証 + お気に入り機能   | 完了 |
-| 5  | 認証の強化, Cloud Run デプロイ | これから   |
+| 4  | 自前JWTを用いた擬似認証 + お気に入り機能(インメモリDB)   | 完了 |
+| 5  | 認証のマネージド化(Firebase Auth 等), Cloud Run デプロイ | これから   |
 
 ※ 認証の強化はダミートークンをJWTに変更、そして、Firebase Authを利用する予定
 
 ## 11. 今後の拡張予定
 
 - 手順5：
-  - JWTによる認証の実装
   - JWT -> Firebase Authにする (本番想定の構成として検討)
   - Cloud Run デプロイ  
   - 本番相当環境での動作確認
+

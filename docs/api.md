@@ -17,7 +17,7 @@ FastAPI + yfinance によるバックエンド API の仕様。
 | GET     | `/health`                  | ヘルスチェック           | 実装済 |
 | GET     | `/stocks/{symbol}/history` | 株価履歴（ローソク足）取得  | 実装済 |
 | GET     | `/stocks/search`           | 銘柄検索（ダミー）        | ダミー |
-| POST    | `/auth/login`              | トークン取得(ダミー)      | 実装済  |
+| POST    | `/auth/login`              | JWT アクセストークン取得     | 実装済  |
 | GET     | `/auth/me`                 | 認証ガード動作確認        | 実装済 |
 | POST    | `/favorites`               | お気に入り登録・解除トグル   | 実装済 |
 | GET     | `/favorites`               | お気に入り一覧            | 実装済 |
@@ -25,18 +25,25 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 ## 共通仕様
 ### 認証
-- 以下のエンドポイントは共通して認証が必要です:
+- 以下のエンドポイントは共通してJWT認証が必要です:
   - `GET /auth/me`
   - `POST /favorites`
   - `GET /favorites`
-- リクエストヘッダ:
+
+**認証ヘッダ**
   ```text
   Authorization: Bearer <access_token>
   ```
 ### 共通エラー
 **401 Unauthorized**
-- 認証トークンが無い、または不正な場合
-- 例
+
+アクセス拒否条件
+- トークン無し
+- トークン形式が不正
+- トークンの署名が不正
+- トークンの有効期限が切れている
+
+例
 ```json
 {
   "detail": "Not authenticated"
@@ -138,8 +145,9 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 ## POST /auth/login　（ダミーユーザーによるログイン）
 ### 説明
-- usernameを受け取りトークンを返すAPI
-- 現在はどんなユーザーでもログインすると固定ダミートークンを返す
+- username を受け取り、存在しない場合はダミーDBにユーザー登録する。
+- JWT アクセストークンを発行して返します。
+- トークンには `sub` としてユーザーIDを含み、有効期限は `.env` の `JWT_EXPIRE_MINUTES` により決定されます。
 
 ### リクエスト
 **Header**
@@ -156,10 +164,16 @@ Content-Type: application/json
 ### レスポンス
 ```json
 {
-  "access_token": "<token-string>",
-  "token_type": "bearer"
+  "access_token": "<jwt-token-string>",
+  "token_type": "bearer",
+  "expires_in_seconds": 3600
 }
 ```
+
+レスポンス説明
+- access_token: JWT トークン本体
+- token_type: "bearer" 固定
+- expires_in_seconds: トークンの残り有効期限（秒）
 
 ### エラー例
 - 422 Unprocessable Entity（バリデーションエラー時）
@@ -168,9 +182,9 @@ Content-Type: application/json
 
 ## GET /auth/me
 ### 説明
-- 認証ガードの動作確認用API
-- Authorization: Bearer dummy-token が付いていれば user 情報が返る
-- 無ければ 401
+- 認証されたユーザー情報を返す API。
+- `Authorization: Bearer <JWT>` が必要。
+- トークンが不正・期限切れの場合は 401 を返します。
 
 ### レスポンス
 ```json
@@ -191,7 +205,7 @@ Content-Type: application/json
 ### リクエスト
 **Header**
 ```http
-Authorization: Bearer dummy-token
+Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
 
@@ -233,7 +247,7 @@ Content-Type: application/json
 ### リクエスト
 **Header**
 ```http
-Authorization: Bearer dummy-token
+Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
 
@@ -251,3 +265,4 @@ Content-Type: application/json
 ### エラー例
 - 401 Unauthorized（共通仕様を参照）
 - 422 Unprocessable Entity（バリデーションエラー時）
+
