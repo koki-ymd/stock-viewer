@@ -48,6 +48,12 @@ const Home: React.FC = () => {
         onSelect={handleSelectFavorite}
         onRemove={handleRemoveFavorite}
       />
+
+      {/* --- 操作ヒント（ログアウト方法） --- */}
+      <p style={{ marginTop: "24px", fontSize: "0.85rem", color: "#888" }}>
+        ※ 現在ログアウト機能は未実装です。ログアウトする場合は、ブラウザの開発者ツールから{" "}
+        <code>auth_token</code> を削除し、ページをリロードしてください。
+      </p>
     </div>
   );
 };
