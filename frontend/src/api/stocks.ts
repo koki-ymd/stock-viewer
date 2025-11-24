@@ -1,18 +1,19 @@
 // src/api/stocks.ts
+import { apiClient } from "./client";
 import type { StockHistoryPoint } from "../types/stock";
 
-const API_BASE_URL = "http://localhost:8000";
+export const fetchStockHistoryApi = async (
+  symbol: string,
+  period = "1mo",
+  interval = "1d"
+): Promise<StockHistoryPoint[]> => {
+  const params = new URLSearchParams({
+    period,
+    interval,
+  });
 
-export const fetchStockHistoryApi = async (symbol: string): Promise<StockHistoryPoint[]> => {
-  const res = await fetch(
-    `${API_BASE_URL}/stocks/${encodeURIComponent(symbol)}/history`
+  return apiClient.get<StockHistoryPoint[]>(
+    `/stocks/${encodeURIComponent(symbol)}/history?${params.toString()}`
   );
-
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
-  }
-
-  const data: StockHistoryPoint[] = await res.json();
-  return data;
 };
 
