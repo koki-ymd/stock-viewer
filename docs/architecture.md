@@ -92,6 +92,7 @@ flowchart LR
 - JSON としてフロントエンドへ返却
 - 認証機能: インメモリのダミーユーザーに対する JWT の発行・検証
 - お気に入り管理（辞書型変数によるダミーDB）
+- Stocks API, Favorites API を JWT で保護
 
 
 ### 4-2. 主なエンドポイント
@@ -313,6 +314,8 @@ sequenceDiagram
 
 ### UC-2: 株価チャート閲覧
 
+※ フロントエンドは事前に /auth/login で取得した JWT を Authorization ヘッダに付与して Stocks API にアクセスする。
+
 ```mermaid
 sequenceDiagram
   participant U as User
@@ -329,6 +332,8 @@ sequenceDiagram
 ```
 
 ### UC-3: お気に入りの追加
+※ フロントエンドは事前に /auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
+
 ```mermaid
 sequenceDiagram
   participant U as User
@@ -343,6 +348,8 @@ sequenceDiagram
 ```
 
 ### UC-4: お気に入り一覧の取得
+※ フロントエンドは事前に /auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
+
 ```mermaid
 sequenceDiagram
   participant U as User
@@ -399,4 +406,5 @@ sequenceDiagram
   - JWT -> Firebase Authにする (本番想定の構成として検討)
   - Cloud Run デプロイ  
   - 本番相当環境での動作確認
+
 

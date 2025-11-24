@@ -4,7 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 
 from schemas import UserRead, StockCandle
-from services import stocks_service
+from services import stocks_service, auth_service
 
 router = APIRouter(
     prefix="/stocks",
@@ -21,6 +21,7 @@ def get_stock_history(
     symbol: str,
     period: str = "1mo",
     interval: str = "1d",
+    _current_user: UserRead = Depends(auth_service.get_current_user),
 ):
     """
     指定銘柄の株価履歴を取得するエンドポイント。
@@ -35,6 +36,7 @@ def get_stock_history(
 )
 def search_stocks(
     query: str | None = None,
+    _current_user: UserRead = Depends(auth_service.get_current_user),
 ):
     return {
         "query": query,
