@@ -9,15 +9,14 @@ const Login = () => {
 
   // 入力フォーム用
   const [username, setUsername] = useState("");
-  // 現時点ではバックエンドに password は送っていない（将来の実装用）
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(""); // 未来の機能用
 
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     if (!username.trim()) {
       alert("ユーザー名を入力してください");
       setLoading(false);
@@ -25,10 +24,10 @@ const Login = () => {
     }
 
     try {
-      // API層からログイン処理を呼ぶ
+      // API 層で擬似ログイン
       const result = await loginApi(username);
 
-      // グローバルなログイン状態の更新(AuthContext)
+      // グローバル状態更新
       login(result.access_token, result.expires_in_seconds);
 
       navigate("/");
@@ -41,7 +40,7 @@ const Login = () => {
   };
 
   return (
-    <div style={{ maxWidth: "300px", margin: "80px auto", textAlign: "center" }}>
+    <div style={{ maxWidth: "400px", margin: "80px auto", textAlign: "center" }}>
       <h2>Login</h2>
 
       <form onSubmit={handleLogin}>
@@ -58,17 +57,23 @@ const Login = () => {
         <div style={{ marginBottom: "10px" }}>
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Password (任意)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={{ width: "100%", padding: "8px" }}
           />
         </div>
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} style={{ width: "100%", padding: "8px" }}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
+
+      {/* --- 操作ヒント --- */}
+      <p style={{ marginTop: "20px", color: "#ccc", fontSize: "0.85rem", lineHeight: 1.4 }}>
+        本アプリはポートフォリオ用デモです。<br />
+        <b>任意のユーザー名とパスワード</b>でログインできます。
+      </p>
     </div>
   );
 };
