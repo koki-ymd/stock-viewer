@@ -6,8 +6,6 @@ import {
   CandlestickSeries,
   CrosshairMode,
   type UTCTimestamp,
-  type IChartApi,
-  type ISeriesApi,
 } from "lightweight-charts";
 import type { StockHistoryPoint } from "../../types/stock";
 
@@ -55,7 +53,7 @@ export const StockChart: React.FC<Props> = ({
       },
       rightPriceScale: {
         borderColor: "#555555",
-        // 上下に 10% ずつマージン（値の ±10% ではないですが、視覚的な余白を確保）
+        // 上下に 10% ずつマージン
         scaleMargins: {
           top: 0.1,
           bottom: 0.1,
@@ -64,8 +62,8 @@ export const StockChart: React.FC<Props> = ({
       timeScale: {
         borderColor: "#555555",
       },
-      handleScroll: false, // スクロール（ドラッグ・ホイール・タッチ）を全部OFF
-      handleScale: false,  // ズーム・縦軸の拡大縮小を全部OFF
+      handleScroll: false, // スクロール OFF
+      handleScale: false,  // ズーム OFF
     });
 
     // ローソク足シリーズ追加
@@ -78,13 +76,20 @@ export const StockChart: React.FC<Props> = ({
     });
 
     // history -> ライブラリ用データに変換
-    const data = history.map((p) => ({
-      time: p.date as UTCTimestamp, // "YYYY-MM-DD" 形式で OK
-      open: p.open,
-      high: p.high,
-      low: p.low,
-      close: p.close,
-    }));
+    const data = history.map((p) => {
+      // p.date: "YYYY-MM-DD" 形式の string を Unix time (秒) に変換
+      const timestamp = Math.floor(
+        new Date(p.date).getTime() / 1000
+      ) as UTCTimestamp;
+
+      return {
+        time: timestamp,
+        open: p.open,
+        high: p.high,
+        low: p.low,
+        close: p.close,
+      };
+    });
 
     candleSeries.setData(data);
 
