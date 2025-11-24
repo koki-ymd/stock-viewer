@@ -41,6 +41,7 @@ venv/
 
 # ただしサンプルファイルはコミットしたい
 !.env.example
+!.env.development.example
 
 # ---- Logs ----
 *.log
