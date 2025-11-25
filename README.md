@@ -1,42 +1,117 @@
-# 株価ビューア（GCP / Cloud Run）
+# 株価ビューワー （React + FastAPI / GCP Cloud Run）
 
-yfinance を用いて株価チャートを表示する Web アプリケーションです。  
-※ ChatGPTを積極的に活用していきます。
-
-- 認証付き Web アプリの構築  
-- 外部 API（yfinance）を用いたデータ取得  
-- GCP（Cloud Run）へのコンテナデプロイ  
-- フロント＋バックエンド＋インフラを一体で運用する構成管理  
-
-といった一連の開発プロセスを経験することを目的としています。
+このプロジェクトは、  
+**「クラウド × API主体 × フロントエンド」を一体で扱えることを示すポートフォリオ**  
+として開発した株価ビューア Web アプリです。
+yfinance を用いて株価チャートを表示する Web アプリケーションとなっています。  
 
 ---
 
-## 🚀 このリポジトリについて
+## 🎯 プロジェクトの目的
 
-- **状態:** JWTベースの擬似認証・銘柄コード検索によるローソク足チャート表示・お気に入り機能
-- **目的:**
-  - GCP（特に Cloud Run）を用いたコンテナアプリの構築経験を示す
-  - フロント／バックエンド／インフラを 1 リポジトリで統合管理する
-  - 実務に近い CI/CD フロー（Cloud Build or GitHub Actions）を検討中
+本プロジェクトは2つの目的を持っています。
 
-今後、進捗に応じてこの README を更新していきます。
+**目的 1：ポートフォリオとしての Web アプリ開発**
+
+- GCP 上でのコンテナアプリ実行（Cloud Run）
+- React(TypeScript) と FastAPI による Web フルスタック構築
+- 認証・API・チャート表示などの実務的 Web アプリ機能の実装
+
+クラウド × API × フロントの 3 つを一体で扱えることを示すことを目的としています。
+
+**目的 2：LLM を活用した「一連の開発プロセス」の経験**
+
+Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイなど、一連の開発フローを LLM と協働しながら進めました。  
+実装と改善を繰り返す形で、段階的にアプリを育てていく開発プロセスを経験することを目的としています。
+
+※ 開発プロセス全体で ChatGPT5.1 を活用しています。
 
 ---
 
-## 📱 アプリ概要（MVP）
+## ✅ MVP（完成スコープ）
 
-### 🔧 機能
-- ユーザー認証（ログイン／ログアウト）
+- JWT 認証（インメモリユーザー）
+- yfinance による株価データ取得
+- lightweight-charts によるローソク足描画
+- お気に入り銘柄の保存・削除
+- Cloud Runへのデプロイ完了
+
+---
+
+## 🔗 公開 URL（Cloud Run）
+
+**デモ環境（ポートフォリオ公開用）**  
+[https://stock-viewer-210324721960.asia-northeast1.run.app/](https://stock-viewer-210324721960.asia-northeast1.run.app/)
+
+※ この URL は閲覧用の安定版です。開発用の環境とは分離しています。
+
+---
+
+## 🔧 機能
+- ユーザー認証（ログイン）
 - 銘柄コードによる過去データ取得
 - 検索した銘柄の株価チャートをローソク足で表示
 - お気に入り銘柄の登録／削除
+
+---
+
+## 🕹 使い方（操作方法）
+
+- **1. ログイン**
+  - ユーザー名：任意の文字列  
+  - パスワード：任意（インメモリ認証のため固定ユーザー扱い）  
+  - ログインすると Home 画面へ遷移します。
+
+- **2. 銘柄検索**
+  - 検索フォームに銘柄コードを入力
+    - 例
+    - AAPL, GOOG, MSFT, 等
+    - 日本の銘柄であればポストフィックスとして".T"を使用 (7023.T, 9432.T, 等)
+  - 「検索」ボタンを押すと、バックエンド経由で yfinance の株価データを取得します。
+
+- **3. 株価チャートの表示**
+  - 選択した銘柄の**過去株価データをローソク足チャート**として描画します。  
+  - データ量を制限しているため、「パン／ズーム／チルト操作は制限されたモード」で動作します。
+
+- **4. お気に入り機能**
+  - 銘柄の右側にある「お気に入りに追加」ボタンで登録
+  - 銘柄の右側にある「削除」ボタンで解除  
+  - JWT 認証によりユーザーごとにお気に入りが保持されます  
+  - お気に入り一覧から銘柄をワンクリックでチャートを再表示できます
+
+- **5. ログアウト（暫定）**
+
+  現在ログアウト機能は未実装のため、ログアウトする場合は：
+  1. ブラウザの開発者ツールを開く
+  2. Application → Local Storage 下のアプリURL を開く
+  3. auth_token（JWT）と auth_expires_at を削除
+  4. ページをリフレッシュ
+  
+  これでログアウト状態に戻れます。
+
+**注意点** 
+- 本アプリはポートフォリオ用途であり、高頻度アクセスや商用利用は想定していません  
+- yfinance の仕様上、取得できない銘柄コードもあります
+
+---
+
+## 🧭 設計方針（概要）
+
+詳細は `docs/architecture.md` に記載。README 側では要点のみ。
+
+- FastAPI（API）と React（SPA）を疎結合で連携  
+- フロント・バックエンド・インフラを mono-repo で統合  
+- Cloud Run のコンテナ実行モデルに最適化した設計  
+- MVP は簡易構成だが、Firebase Auth(マネージド認証), Firestore(DB), Cloud Build (CI/CD) などは設計検討済み
+
+---
 
 ### 🧰 技術スタック
 
 **フロントエンド**
 
-- React + TypeScript  
+- React + TypeScript
+- Vite
 - lightweight-chartsによるローソク足チャートを表示
 
 **バックエンド**
@@ -44,33 +119,59 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 - Python + FastAPI
 - yfinance による株価取得
 
-**インフラ（GCP）(予定)**
+**インフラ（GCP）**
 
 - Cloud Run（アプリケーション実行）
-- Cloud Build（CI/CD）
 - Artifact Registry（コンテナイメージ管理）
-- 認証・ユーザーデータ保存  
-  - Firestore / Cloud SQL / Firebase Authentication のいずれかを選定予定
-
-※ 実際に採用した構成は実装後に随時反映します。
+- Cloud Build（CI/CD 検討済み）
 
 ---
 
-## 📦 ディレクトリ構成概観
+## 📦 ディレクトリ構成
 
 ```text
 stock-viewer/
   README.md
-  .gitignore
-  backend/        # Python + FastAPI + yfinance
+  cloudbuild.yaml # Cloud Run用設定
+  backend/        # FastAPI + yfinance
   frontend/       # React + TypeScript
-  infra/          # Dockerfile, Cloud Run 用設定, IaC 等（予定）
+  infra/          # Dockerfile / docker-compose.dev.yml
+  docs/           # architecture.md / api.md / ai-notes.md
+```
+
+---
+
+## 🐳 開発環境（Dev Container）
+
+### 開発コンテナの起動
+
+```bash
+docker-compose -f infra/docker-compose.dev.yml up -d --build
+docker-compose -f infra/docker-compose.dev.yml exec app bash
+```
+
+### Backend（FastAPI）起動手順
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Frontend（Vite）起動手順
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 ---
 
 ## 実装した手順について
-進行度に合わせて更新してきます。
 
 ※ 手順5のcloud run buildへの準備段階で各APIのエンドポイントに`/api`プレフィックスを付与しました。
 
@@ -168,57 +269,25 @@ stock-viewer/
 
 </details>
 
+
 ---
-## 開発環境の起動方法
-ローカルでフロントエンド／バックエンドを動かして動作確認する際の手順をまとめます。
 
-開発用コンテナのワーキングディレクトリは/appです。
+## 🗂️ 詳細設計ドキュメント
 
-### 開発用コンテナの起動/ログイン
-```
-docker-compose -f infra/docker-compose.dev.yml up -d --build
-docker-compose -f infra/docker-compose.dev.yml exec app bash
-```
-### Backend（FastAPI）の起動方法
-FastAPI は uvicorn を使用して起動します。  
-- 初回セットアップ
-```
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-- uvicornの起動 (/app/backend)
-  - venvをアクティブにした状態で以下の起動コマンドを実行
-  - `--reload` : 開発中の自動リロード
-  - `--host 0.0.0.0` : コンテナ外（ホスト）からアクセス可能
-```
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
+- `docs/architecture.md`  
+- `docs/api.md`  
+- `docs/ai-notes.md`  
+- `docs/deployment.md`（Cloud Run 手順予定）
 
-- 動作確認 (uvicorn起動後)
-  - ヘルスチェック: <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a>
-  - API動作確認: <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a>
+README では「全体像」「目的」「使い方」に絞り、  
+詳細な設計・理由・構成方針は docs に分離しています。
 
-### Frontend（Vite）の起動方法
-- 初回セットアップ
-  - 使用するパッケージマネージャーはnpmを想定
-```
-cd frontend
-npm install
-```
-- Viteの起動 (/app/frontend)
-  - `--host 0.0.0.0` : コンテナ外（ホスト）からアクセス可能
-  - `--port 5173` : Viteのデフォルトポート
-```
-npm run dev -- --host 0.0.0.0 --port 5173
-```
-- 動作確認 (Vite起動後)
-  - <a href="http://localhost:5173" target="_blank">http://localhost:5173</a>
+---
 
-### FrontendとBackendの接続確認
-`http://localhost:8000/health` をフロント（`http://localhost:5173`）から叩いた際に「CORS error」が出ていないことを確認してください。
-（Network タブで該当リクエストをクリックし、「Headers → Response Headers」に  `access-control-allow-origin` が存在することを確認する。）
-
+## 📄 補足
 
 ※ 将来的に .env を使用する場合は .env.example に必要な項目を追加します。
+- `.env` を利用する場合は `.env.example` に必要項目を追加  
+- 本アプリはポートフォリオ用途であり、商用サービスではありません（yfinance / Yahoo! Finance のデータ使用ポリシーに準拠）
+
+---
