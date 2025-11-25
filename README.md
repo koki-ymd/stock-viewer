@@ -149,7 +149,7 @@ stock-viewer/
   backend/        # FastAPI + yfinance
   frontend/       # React + TypeScript
   infra/          # Dockerfile.dev / Dockerfile.prod / docker-compose.dev.yml / cloudbuild.yaml
-  docs/           # architecture.md / api.md / ai-notes.md / dev-log.md
+  docs/           # architecture.md / api.md / ai-notes.md / dev-log.md / deployment.md
 ```
 
 ---
