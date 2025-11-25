@@ -2,84 +2,89 @@
 
 ## 1. システム概要
 
-本プロジェクトは、ブラウザ上で動作する株価ビューア Web アプリです。
+本プロジェクトは、**React + FastAPI + GCP Cloud Run** を用いた株価ビューア Web アプリです。
 
 ユーザーが銘柄コードを入力すると、サーバー側で yfinance を用いて株価データを取得し、  
 フロントエンドでローソク足チャートとして可視化します。
 
-将来的には GCP（Cloud Run）上にデプロイし、  
-「クラウド × API主体 × フロントエンド」のスキルを示すポートフォリオとすることを目的とします。
+本プロジェクトの目的は2つあります。
+- 「クラウド × API主体 × フロントエンド」のスキルを示すポートフォリオ作成
+- LLM（ChatGPT）を活用した一連の開発プロセスの経験
+  - Docker による開発環境構築
+  - API 設計
+  - フロント実装
+  - Cloud Run へのデプロイ
 
-※ 本アプリはポートフォリオ用途であり、商用サービスではありません。
-株価データ取得には yfinance を用いていますが、Yahoo! Finance データの商用利用は禁止されているため、
-本アプリは学習・デモ目的以外では利用しない想定です。
+※ 商用利用は想定していません（Yahoo! Finance の規約により商用利用禁止）。
 
 ---
 
 ## 2. 要件とゴール
 
-### 2-1. 機能要件（実装済の内容まで）
+### 2-1. 機能要件（MVP / 実装済）
 
-- 銘柄コードの入力・検索  
-- 指定銘柄の株価データ取得（yfinance 利用）  
-- ローソク足チャートの表示（lightweight-charts）
-- ユーザー認証（インメモリのダミーユーザー + 自前 JWT）
-- お気に入り銘柄の登録・一覧表示
-- 株価取得、お気に入り機能の利用には認証が必要
+- 銘柄コードによる株価検索  
+- yfinance による株価データ取得  
+- Lightweight Charts によるローソク足描画  
+- JWT 認証（インメモリユーザー + 自前 JWT）  
+- お気に入り銘柄の登録・一覧取得  
+- 株価 API・お気に入り API は認証必須
 
-### 2-2. 機能要件（今後の予定）
+### 2-2. 今後の予定（将来の拡張）
 
-- ユーザー認証（自前 JWT 認証済み → Firebase Auth 等のマネージド認証への移行を検討）
-- ユーザー登録（本格運用を想定した永続化ストレージでの管理を検討中）
+- Cloud Build を利用した CI/CD パイプライン構築
+- Firebase Authentication への移行（マネージド認証）  
+- Firestore / Cloud SQL などの永続 DB の採用検討  
 
 ### 2-3. 非機能要件
 
-- GCP Cloud Run 上で動作する構成  
-- 少ない運用コスト（サーバーレス構成）  
-- Docker を前提としたローカル開発環境  
-- ポートフォリオとして読みやすく、設計が伝わるドキュメント構成
+- Cloud Run 上でのサーバーレス運用  
+- ローカル開発は Docker による dev container で統一  
+- ポートフォリオとして理解しやすい構成とドキュメント性
 
 ---
 
 ## 3. 全体アーキテクチャ
 
-### 3-1. コンポーネント一覧
+### 3-1. コンポーネント
 
-- **Frontend（React + TypeScript）**  
-  - ユーザー操作入力  
-  - 銘柄検索  
-  - チャート表示  
-  - 認証・認証状態管理
-  - お気に入りUI
+- **Frontend（React + TypeScript）**
+  - UI（検索フォーム・チャート画面）
+  - 認証 UI（ログイン）
+  - 状態管理（認証トークン保持 / お気に入り一覧 / 選択中の銘柄）
+  - チャート描画（lightweight-charts）
 
-- **Backend（FastAPI）**  
-  - API 提供（/api/health, /api/stocks/*, /api/favorites）  
-  - yfinance を利用した外部データ取得  
-  - データ整形（OHLC 形式）  
-  - 認証（インメモリのダミーユーザーに対する JWT 発行・検証）
-  - お気に入り管理
-  - 今後: Firebase Auth など外部認証基盤への移行を検討
+- **Backend（FastAPI）**
+  - API 提供（/api/auth, /api/stocks, /api/favorites）
+  - JWT 認証
+  - 株価データ取得（yfinance）
+  - データ整形（OHLC 形式）
 
-- **External API**  
-  - yfinance（Yahoo Finance データ取得ライブラリ）
+- **External API**
+  - yfinance（株価データの取得）
 
-- **Infrastructure（開発環境）**  
-  - Docker / docker-compose  
-  - Colima（Apple Silicon Docker 仮想化）
+- **Cloud Run（デプロイ環境）**
+  - フロントとバックエンドを単一コンテナ構成で提供
+  - 静的ファイル配信 + API サーバ
 
-### 3-2. コンポーネント図 (開発段階の内容)
+- **Local Dev（Docker）**
+  - backend / frontend をホットリロードで動作させる開発環境
+
+
+### 3-2. アーキテクチャ図（Cloud Run 版）
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "15px"}}}%%
 flowchart LR
-  User["User (Browser)"] --> FE["Frontend<br/>React + TypeScript"]
-  FE --> BE["Backend<br/>FastAPI API Server"]
-  BE --> YF["yfinance<br/>(Yahoo Finance)"]
+  User["User (Browser)"] --> FE["Frontend (React)"]
+  FE --> BE["Backend (FastAPI)"]
+  BE --> YF["yfinance"]
 
-  subgraph "Local Dev (Docker)"
+  subgraph "Cloud Run (Single Container)"
     FE
     BE
   end
-```    
+```
 
 ---
 
@@ -87,107 +92,146 @@ flowchart LR
 
 ### 4-1. 役割
 
-- フロントエンドから API リクエストを受け取る  
-- yfinance を使って株価データを取得  
-- チャート表示に必要なデータ形式に整形  
-- JSON としてフロントエンドへ返却
-- 認証機能: インメモリのユーザーに対する JWT の発行・検証
-  - 現在は辞書型変数によるダミーDBでユーザー管理
-- お気に入り管理（辞書型変数によるダミーDB）
-- Stocks API, Favorites API を JWT で保護
-  - get_current_userがデータ取得APIの前に走ることで認証ガードを実現
+- 銘柄コードに応じて yfinance から株価データを取得  
+- OHLC データに整形して返却  
+- JWT を用いたユーザー認証（インメモリユーザー）  
+- お気に入り銘柄の登録・取得（インメモリ辞書によるダミーDB）
+- Stocks / Favorites の各 API の認証ガード
 
 
 ### 4-2. 主なエンドポイント
+
+#### 認証が必要なエンドポイントでの共通ヘッダー
+
+```http
+Authorization: Bearer <JWTアクセストークン>
+Content-Type: application/json
+```
+
+以下のエンドポイントは上記ヘッダーを前提とします：
+- GET /api/stocks/{symbol}/history
+- GET /api/favorites
+- POST /api/favorites
+- GET /api/auth/me
 
 ---
 
 #### **GET /api/health**
 
-用途：動作確認用ヘルスチェック
+用途：Cloud Run / ローカル動作確認
+認証：不要
 
+レスポンス例
 ```json
 { "status": "ok" }
 ```
 
 ---
 
-#### **GET /api/stocks/XXXX/history?period=YY&interval=ZZ**
+#### GET /api/stocks/{symbol}/history  
+用途：指定した銘柄コードの株価データ（OHLC）を取得する  
+認証：必要  
 
-用途：指定された銘柄コードの株価データを取得する。
+パラメータ：
 
-XXXX: 銘柄コード(例: AAPL, 9432.T)
+| パラメータ | 説明 | 例 | 備考 |
+|-----------|------|-----|------|
+| symbol | 銘柄コード | AAPL, 7203.T | 必須 |
+| period | 取得期間 | 1mo, 1y, ytd | yfinance の仕様 |
+| interval | 足の間隔 | 1d, 1wk | yfinance の仕様 |
 
-| パラメータ    | 意味   | 例                          | 備考                        |
-| -------- | ---- | -------------------------- | ------------------------- |
-| period   | 取得期間 | 10d / 1mo / 1y / ytd / max | yfinance の period パラメータ   |
-| interval | 足の間隔 | 1m / 1h / 1d / 1wk         | yfinance の interval パラメータ |
+パラメータの参考: [yfinanceの仕様](https://ranaroussi.github.io/yfinance/reference/yfinance.price_history.html)
 
-
-YY, ZZについて指定できるパラメータの[参考](https://ranaroussi.github.io/yfinance/reference/yfinance.price_history.html)
-
-**レスポンス例（ローソク足 OHLC）**
-
+レスポンス例：
 ```json
 [
   {
     "date": "2025-11-18",
-    "open": 269.989990234375,
-    "high": 270.7099914550781,
-    "low": 265.32000732421875,
-    "close": 267.44000244140625,
+    "open": 270.0,
+    "high": 271.0,
+    "low": 265.3,
+    "close": 267.4,
     "volume": 45677300
   }
 ]
 ```
 
-#### **GET /api/favorites**
-用途: ログイン中のユーザーのお気に入り銘柄一覧を取得する。
+---
 
-**Header**
-```http
-Authorization: Bearer <token>
-Content-Type: application/json
-```
+#### GET /api/favorites  
+用途：ログイン中のユーザーのお気に入り銘柄一覧を取得する  
+認証：必要  
 
-**レスポンス例**
+レスポンス例：
 ```json
 {
   "user_id": "user1",
-  "symbols": [
-    "7203.T",
-    "AAPL"
-  ]
+  "symbols": ["7203.T", "AAPL"]
 }
 ```
 
 ---
 
+#### POST /api/favorites  
+用途：お気に入り銘柄の追加  
+認証：必要  
+
+リクエスト例：
+```json
+{ "symbol": "AAPL" }
+```
+
+レスポンス例：
+```json
+{
+  "user_id": "user1",
+  "symbols": ["AAPL", "7203.T"]
+}
+```
+
+---
+
+#### POST /api/auth/login  
+用途：ログインし、JWT トークンを発行する  
+認証：不要  
+
+リクエスト例：
+```json
+{ "username": "user1" }
+```
+
+レスポンス例：
+```json
+{
+  "access_token": "<jwt-string>",
+  "token_type": "bearer",
+  "expires_in_seconds": 3600
+}
+```
+
+---
+
+#### GET /api/auth/me  
+用途：ログイン中のユーザー情報を確認する  
+認証：必要  
+
+レスポンス例：
+```json
+{
+  "user_id": "user1"
+}
+```
+
 ### 4-3. ディレクトリ構成
 
-```
+```text
 backend/
   main.py
   routers/
-    stocks.py
-    auth.py
-    favorites.py
   services/
-    stocks_service.py
-    auth_service.py
-    favorites_service.py
   schemas/
-    stocks.py
-    auth.py
-    favorites.py
-    user.py
   core/
-    settings.py
   requirements.txt
-infra/
-  docker-compose.dev.yml
-  Dockerfile.dev
-  Dockerfile.prod
 ```
 
 ---
@@ -196,122 +240,176 @@ infra/
 
 ### 5-1. 役割
 
-- ユーザーが検索した銘柄をバックエンドに送信  
-- 取得した株価データを Lightweight Charts で表示
-- 認証 UI
-- お気に入り銘柄一覧
+- ユーザーが入力した銘柄コードをバックエンドへ送信し、レスポンスを UI として描画する  
+- 株価データを lightweight-charts を用いてローソク足として可視化  
+- 認証 UI（ログインフォーム）および認証状態の保持
+- お気に入り銘柄リストの表示と操作（追加／削除）
 
 ### 5-2. 画面構成
-- `/login`
-  - 認証 UI
 
-- `/`  
-  - 検索フォーム  
-  - チャート表示エリア
+- `/login`  
+  - ログインフォーム（ユーザー名とパスワードの入力）  
+  - バックエンドの `/api/auth/login` を呼び出し JWT を取得
 
+- `/`（Home）  
+  - 銘柄検索フォーム  
+  - 株価チャート表示エリア  
+  - お気に入り一覧の表示  
+  - API へのアクセスは JWT 付与のクライアント経由で行う
 
-### 5-3. 主なコンポーネント構成
+### 5-3. 状態管理
 
-```
+- `AuthContext` による認証状態の管理  
+  - auth_token の保持（localStorage）  
+  - トークンの有効期限  
+  - 未認証状態の判定および ProtectedRoute との連携
+
+- UI 状態  
+  - 検索中フラグ・エラー状態  
+  - 選択中の銘柄  
+  - 表示中のチャートデータ  
+  - お気に入りリスト（API から取得）
+
+### 5-4. 主なコンポーネント構成
+
+```text
 frontend/src/
   App.tsx
   pages/
     Home.tsx
     Login.tsx
   api/
-    client.ts
+    client.ts           # JWT付与の共通クライアント
     auth.ts
     favorites.ts
     stocks.ts 
   components/
-    ProtectedRoute.tsx
+    ProtectedRoute.tsx  # ログイン必須ページの保護
     home/
       StockSearchForm.tsx
       StockChart.tsx
       FavoriteList.tsx
   hooks/
-    useStockViewer.ts
+    useStockViewer.ts   # 検索・お気に入りなどのロジック集約
   context/
-    AuthContext.tsx
+    AuthContext.tsx     # 認証状態の保持
   types/
     stocks.ts
 ```
 
 ---
 
-## 6. インフラ構成（開発環境 / 将来）
+## 6. インフラ構成
 
-### 6-1. 開発環境（現在）
+### 6-1. ローカル開発環境
 
-- macOS + Colima  
-- Docker / docker-compose.dev.yml により  
-  - バックエンド  
-  - フロントエンド  
-  をコンテナ上で実行
+- Docker / docker-compose.dev.yml  
+- Colima（Apple Silicon 仮想化）  
+- backend と frontend をそれぞれ別コンテナとして起動
+  - backend（FastAPI）: ホットリロード（uvicorn --reload）
+  - frontend（React + Vite）: ホットリロード（vite dev）
+- コンテナ間は docker-compose のネットワークで疎通
 
-### 6-2. 将来の本番構成（手順5以降）
+※ 開発時は更新頻度が高いため、フロントとバックを独立したホットリロードコンテナとして運用。
+   本番は単一コンテナに統合（Cloud Run）。
 
-- Backend → Cloud Run  
-- Frontend → Cloud Run または Cloud Storage  
-- Artifact Registry でコンテナ管理  
-- Secret Manager 等の活用も検討
+
+### 6-2. Cloud Run（リモート環境）
+
+- **prod（公開用 Cloud Run）**  
+- **dev（開発用 Cloud Run）**
+
+**Cloud Run のインスタンス設定**
+- 最小インスタンス数：1
+  - コールドスタート防止
+  - ポートフォリオ閲覧時の応答速度確保
+- 最大インスタンス数：デフォルト値(100)
+
+Cloud Run 上では、フロントエンドとバックエンドを単一コンテナ構成で提供
+
+**Cloud Run内でのルーティング**
+- `/api/*` → FastAPI  
+- `/static/*` → フロントのビルドファイル 
+- その他(`/login`, `/`)：SPA 用の index.html を返却（フロント側ルーティングの入口）
+
+**SPA 配信の仕組み**
+- React のビルドファイルは frontend/dist に生成
+- FastAPI が StaticFiles を用いて dist/ を静的配信
+- フロント側のルーティング（React Router）はすべて index.html を起点として動作するため、定義されていない URL も index.html にフォールバックする
 
 ---
 
-## 7. 認証・認可（現状と今後）
+## 7. 認証と依存関係
 
-### 現状
+本章では、本アプリにおける JWT 認証の設計と、FastAPI の Depends を用いた認証依存関係の仕組みについて整理します。
 
-- バックエンド
-  - インメモリのダミーユーザーを管理（実データベースは未使用）
-  - `POST /api/auth/login`
-    - `username` を受け取り、存在しなければダミーDBにユーザー登録
-    - ユーザーIDを `sub` として含む JWT アクセストークンを発行
-    - 有効期限は `.env` の `JWT_EXPIRE_MINUTES` で管理
-    - レスポンス例（概略）  
-      ```json
-      {
-        "access_token": "<jwt-token-string>",
-        "token_type": "bearer",
-        "expires_in_seconds": 3600
-      }
-      ```
-  - `get_current_user`（認証ガード）
-    - すべての保護 API で使用する共通 Depends
-    - `Authorization: Bearer <JWT>` を検証し、不正または期限切れなら 401 を返却
+### 7-1. 認証フローの概要
 
-  - JWT で保護されるエンドポイント：
-    - `GET /api/auth/me`
-    - `GET /api/favorites`
-    - `POST /api/favorites`
-    - `GET /api/stocks/{symbol}/history`
-    - `GET /api/stocks/search`
-    - → Stocks API も含め、ユーザー固有のデータアクセス全てが保護対象となった
+※ MVP のため、ユーザーパスワードや永続 DB は未導入（PoC の認証として簡易実装）。
 
-- フロントエンド
-  - `POST /api/auth/login` を呼び出し、`access_token` と `expires_in_seconds` を受け取る
-  - `AuthContext` が以下を管理
-    - `auth_token`（localStorage に保存）
-    - `auth_expires_at`（期限をミリ秒で保存）
-    - 有効期限切れの場合は自動的に未ログイン扱い
-  - API 呼び出し時は `api/client.ts` を通じて自動的にヘッダ付与：
-    ```http
-    Authorization: Bearer <access_token>
-    ```
-  - `ProtectedRoute` が認証状態を参照し、未認証時は `/api/login` へリダイレクト
+- `/api/auth/login`  
+  - ユーザー名を受け取り JWT を発行
+- `/api/auth/me`  
+  - 現在ログイン中のユーザーを返す
+- 認証が必要な API  
+  - `/api/stocks/{symbol}/history`
+  - `/api/favorites` (GET/POST)
+  - これらは全て `get_current_user` による JWT チェックを通過する必要がある
 
-### 今後
+### 7-2. 依存関係（FastAPI Depends）概要
 
-- Firebase Auth などのマネージド認証サービスへ移行を検討
-  - ユーザー登録・ログイン・セキュリティ管理を外部に委譲
-  - バックエンド側は「Firebase の ID Token を検証して認可する API」へシンプル化
-- お気に入り情報やユーザー情報の永続化（RDB / NoSQL など）を検討
-- Cloud Run での本番運用向け構成の整備
+保護エンドポイントでは、以下のように `Depends(get_current_user)` を使用します：
+
+```python
+@router.get("/api/favorites")
+def list_favorites(current_user: User = Depends(get_current_user)):
+    return favorites_service.get_favorites(user_id=current_user.id)
+```
+
+- `current_user` は `get_current_user()` により解決される
+- JWT が無効 / 期限切れ / 不正な場合は自動的に 401 が返される
+
+### 7-3. 認証依存関係の図
+
+```mermaid
+flowchart LR
+  Client["Client (Browser)"] -->|Authorization: Bearer <token>| Endpoint["保護エンドポイント<br>/api/stocks, /api/favorites ..."]
+
+  Endpoint -->|Depends| GetCurrentUser["get_current_user()"]
+  GetCurrentUser --> VerifyJWT["JWT 検証<br>（署名・有効期限チェック）"]
+  VerifyJWT --> UserStore["インメモリユーザーストア"]
+
+  UserStore -->|ユーザー情報| GetCurrentUser
+  GetCurrentUser --> Endpoint
+```
+
+### 7-4. 認証方式のポイント
+
+- **インメモリユーザー**  
+  - 辞書型の簡易ストアを使用  
+  - データ永続化は行わない（MVP 用途）
+
+- **JWT（自前実装）**  
+  - HS256 による署名  
+  - `exp` で有効期限を管理  
+  - 認証ガードは `get_current_user` が一元的に担当
+
+- **フロント側の認証状態管理**  
+  - `AuthContext` によるトークン管理  
+  - localStorage に `auth_token / auth_expires_at` を保存  
+  - ProtectedRoute により未認証時は `/login` へリダイレクト
+
+### 7-5. 今後の拡張（認証）
+
+- Firebase Authentication への移行（マネージド認証）  
+- ユーザーデータを永続ストア（Firestore / Cloud SQL）に移行  
+- Refresh Token による再認証  
 
 ---
 
 ## 8. データフロー
-### UC-1: ログイン（自前 JWT 認証）
+
+### ログイン
 
 ```mermaid
 sequenceDiagram
@@ -319,108 +417,60 @@ sequenceDiagram
   participant FE as Frontend
   participant BE as Backend
 
-  U->>FE: ユーザー名を入力してログイン
-  FE->>BE: POST /api/auth/login { "username": "user1" }
-  BE->>BE: ダミーDBにユーザー登録 or 取得
-  BE-->>FE: { access_token(JWT), token_type, expires_in_seconds }
-  FE-->>U: 認証成功 & トークン・有効期限をローカルに保存
+  U->>FE: ログイン情報入力
+  FE->>BE: POST /api/auth/login
+  BE-->>FE: JWT + expires_at
+  FE-->>U: 認証状態を保存
 ```
 
-### UC-2: 株価チャート閲覧
+---
 
-※ フロントエンドは事前に /api/auth/login で取得した JWT を Authorization ヘッダに付与して Stocks API にアクセスする。
+### 株価閲覧
 
 ```mermaid
 sequenceDiagram
-  participant U as User
   participant FE as Frontend
-  participant BE as Backend (FastAPI)
+  participant BE as Backend
   participant YF as yfinance
 
-  U->>FE: 銘柄コードを入力し「表示」をクリック
-  FE->>BE: GET /api/stocks/XXXX/history?period=YY&interval=ZZ <br/> Authorization: Bearer <JWT token>
-  BE->>YF: 株価データ取得（XXXX）
+  FE->>BE: GET /api/stocks/{symbol}/history (JWTあり)
+  BE->>YF: データ取得
   YF-->>BE: OHLC データ
-  BE-->>FE: 整形済みチャートデータ
-  FE-->>U: ローソク足チャート描画
-```
-
-### UC-3: お気に入りの追加
-※ フロントエンドは事前に /api/auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
-
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant FE as Frontend
-  participant BE as Backend
-
-  U->>FE: 「お気に入りに追加」をクリック
-  FE->>BE: POST /api/favorites {symbol} <br/> Authorization: Bearer <JWT token>
-  BE-->>FE: ["AAPL", symbol, ...]
-  FE-->>U: UI を更新
-
-```
-
-### UC-4: お気に入り一覧の取得
-※ フロントエンドは事前に /api/auth/login で取得した JWT を Authorization ヘッダに付与して Favorites API にアクセスする。
-
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant FE as Frontend
-  participant BE as Backend
-
-  U->>FE: ホーム画面を開く
-  FE->>BE: GET /api/favorites <br/> Authorization: Bearer <JWT token>
-  BE-->>FE: ["AAPL", "GOOG", ...]
-  FE-->>U: 一覧を表示
-
-```
-
-### UC-5: 認証ガードによる保護された画面へのアクセス
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant FE as Frontend
-  participant BE as Backend
-
-  U->>FE: "/" にアクセス
-  FE->>FE: ProtectedRoute がトークンをチェック
-  FE-->>U: 未認証なら /api/login にリダイレクト
-
+  BE-->>FE: 整形済みデータ
 ```
 
 ---
 
-## 9. 技術的な工夫・トレードオフ
+## 9. 技術的トレードオフ / 工夫点
 
-- **yfinance の採用**  
-  → Yahoo!Financeの非公式であるため不安定だが、手軽に株価データにアクセス可能
-- **Cloud Run 前提の設計**  
-  → スケールアウト、コスト最適化、コンテナベースのため
-- **認証の段階的導入**  
-  → 最初はダミー → 自前 JWT → マネージド認証に移行
+- **yfinance の採用**
+  → 非公式だが学習目的では十分。高速に株価データを取得可能。
+
+- **Cloud Run の採用**
+  → スケール・コスト最適化。コンテナベースでデプロイ容易。
+
+- **自作 JWT 認証**
+  → Firebase Auth 導入前段階として、JWT の仕組み理解を目的に実装。
+
+- **単一コンテナ（フロント + API）構成**
+  → Cloud Run と相性が良い。サービス分割よりシンプルでポートフォリオ向き。
 
 ---
 
-## 10. 実装手順について
-| 手順 | 内容             | 実装状況 |
-| -- | -------------- | ---- |
-| 1  | Docker 開発環境構築  | 完了   |
-| 2  | FastAPI サーバの構築 | 完了   |
-| 3  | チャート表示機能, フロントのガード認証（ProtectedRouteパターン）  | 完了   |
-| 4  | 自前JWTを用いた擬似認証 + お気に入り機能(インメモリDB)   | 完了 |
-| 5  | 認証のマネージド化(Firebase Auth 等), Cloud Run デプロイ | これから   |
+## 10. 実装手順のハイレベルまとめ
 
-※ 認証の強化はダミートークンをJWTに変更、そして、Firebase Authを利用する予定
+詳細は `docs/dev-log.md` に記載。
 
-## 11. 今後の拡張予定
+- Docker 開発環境構築  
+- 最小 API（FastAPI）  
+- チャート＆ダミー認証  
+- JWT 認証 + お気に入り機能  
+- Cloud Run デプロイに向けた構成調整
 
-- 手順5：
-  - JWT -> Firebase Authにする (本番想定の構成として検討)
-  - Cloud Run デプロイ  
-  - 本番相当環境での動作確認
+---
 
+## 11. 今後の拡張 (簡易)
 
-
-
+- Cloud Build による CI/CD  
+- Firebase Auth への移行  
+- 永続 DB（Firestore / Cloud SQL）  
