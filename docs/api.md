@@ -4,29 +4,32 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 ---
 
-## ベース URL
+## 1. ベース URL
 
-- ローカル開発環境: `http://localhost:8000/api`
+すべてのAPIは `/api` をプレフィックスに持つ。
 
-全てのエンドポイントは `/api` をプレフィックスに持つ
+| 環境           | URL                         |
+|----------------|----------------------------|
+| ローカル開発環境  | `http://localhost:8000/api` |
+| Cloud Run    | `https://stock-viewer-210324721960.asia-northeast1.run.app/api`|
 
 ---
 
-## エンドポイント一覧
+## 2. エンドポイント一覧
 
-| メソッド | パス                       | 説明                     | 状態 |
-|---------|----------------------------|--------------------------|------|
-| GET     | `/api/health`                  | ヘルスチェック           | 実装済 |
-| GET     | `/api/stocks/{symbol}/history` | 株価履歴（ローソク足）取得  | 実装済 |
-| GET     | `/api/stocks/search`           | 銘柄検索（ダミー）        | ダミー |
-| POST    | `/api/auth/login`              | JWT アクセストークン取得     | 実装済  |
-| GET     | `/api/auth/me`                 | 認証ガード動作確認        | 実装済 |
-| POST    | `/api/favorites`               | お気に入り登録・解除トグル   | 実装済 |
-| GET     | `/api/favorites`               | お気に入り一覧            | 実装済 |
+| メソッド | パス                       | 説明                     | 認証 | 状態 |
+|---------|----------------------------|--------------------------|------| -----|
+| GET     | `/api/health`                  | ヘルスチェック           | 不要 | 実装済 |
+| GET     | `/api/stocks/{symbol}/history` | 株価履歴（ローソク足）取得  | 必要 | 実装済 |
+| GET     | `/api/stocks/search`           | 銘柄検索（ダミー）        | 必要 | UIから使用していない |
+| POST    | `/api/auth/login`              | JWT アクセストークン取得   | 不要 | 実装済  |
+| GET     | `/api/auth/me`                 | 認証ガード動作確認       | 必要 | 実装済 |
+| POST    | `/api/favorites`               | お気に入り登録・解除トグル  | 必要　| 実装済 |
+| GET     | `/api/favorites`               | お気に入り一覧           | 必要 | 実装済 |
 ---
 
-## 共通仕様
-### 認証
+## 3. 共通仕様
+### 3-1. 認証
 - 以下のエンドポイントは共通してJWT認証が必要です:
   - `GET /api/stocks/{symbol}/history`
   - `GET /api/stocks/search`
@@ -38,14 +41,14 @@ FastAPI + yfinance によるバックエンド API の仕様。
   ```text
   Authorization: Bearer <access_token>
   ```
-### 共通エラー
+### 3-2. 共通エラー
 **401 Unauthorized**
 
 アクセス拒否条件
 - トークン無し
-- トークン形式が不正
+- Bearerフォーマットが不正
 - トークンの署名が不正
-- トークンの有効期限が切れている
+- トークンの有効期限が切れ
 
 例
 ```json
@@ -53,57 +56,56 @@ FastAPI + yfinance によるバックエンド API の仕様。
   "detail": "Not authenticated"
 }
 ```
+
 **422 Unprocessable Entity**
-- FastAPI のバリデーションエラー時に返る（リクエストボディやクエリが不正な場合）
-- 現時点では詳細バリデーションは未実装だが、将来的なエラーとして想定
+- FastAPI 標準のバリデーションエラー
+- クエリやリクエストボディの形式が不正
+- バリデーション未通過
 
 ---
 
-## GET /api/health
+## 4. エンドポイント詳細
+### GET /api/health
 
-### 説明
+**説明**
 アプリケーションが正常に動作しているか確認するためのエンドポイント。
 
-### リクエスト
-- メソッド: GET
-- パス: `/health`
-
-### レスポンス（例）
+**レスポンス（例）**
 ```json
 { "status": "ok" }
 ```
 
 ---
 
-## GET /api/stocks/{symbol}/history
+### GET /api/stocks/{symbol}/history
 
-### 説明
+**説明**
 
 - 指定した銘柄シンボルの株価履歴（ローソク足）を取得します。
 - データは yfinance を使用して取得します。
 - **このエンドポイントは JWT 認証が必要です。**
 
-### リクエストヘッダ
+**リクエストヘッダ**
 
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
 
-### パスパラメータ
+**パスパラメータ**
 
 | 名前     | 型      | 必須 | 説明                   |
 | ------ | ------ | -- | -------------------- |
 | symbol | string | 必須 | 銘柄コード（例: AAPL, TSLA） |
 
-### クエリパラメータ
+**クエリパラメータ**
 
 | 名前       | 型      | デフォルト | 説明   |
 | -------- | ------ | ----- | ---- |
 | period   | string | `1mo` | 取得期間 |
 | interval | string | `1d`  | 足の間隔 |
 
-### レスポンス例
+**レスポンス**
 
 ```json
 [
@@ -118,7 +120,7 @@ Content-Type: application/json
 ]
 ```
 
-### エラー例
+**エラー例**
 - 404 Not Found
   ```json
   { "detail": "No data for given symbol/params" }
@@ -127,28 +129,30 @@ Content-Type: application/json
 
 ---
 
-## GET /api/stocks/search（ダミー）
+### GET /api/stocks/search（ダミー）
 
-### 説明
+**説明**
 
-- 将来的に実装を検討している銘柄検索 API。
-- 現在はダミーレスポンスを返します。
+- 銘柄検索 API
+- 現在はダミーレスポンスを返します
 - **このエンドポイントは JWT 認証が必要です。**
+- MVP スコープ外（将来の拡張候補）
+- 現時点では UI からは利用していない
 
-### リクエストヘッダ
+**リクエストヘッダ**
 
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
 
-### クエリパラメータ
+**クエリパラメータ**
 
 | 名前    | 型      | 必須 | 説明    |
 | ----- | ------ | -- | ----- |
 | query | string | 任意 | 検索文字列 |
 
-### レスポンス例
+**レスポンス例**
 
 ```json
 {
@@ -158,20 +162,22 @@ Content-Type: application/json
   "note": "銘柄検索ロジックは後で実装"
 }
 ```
-### エラー例
+
+**エラー例**
 - 422 Unprocessable Entity（バリデーションエラー時）
 
 ---
 
-## POST /api/auth/login　（ダミーユーザーによるログイン）
-### 説明
+### POST /api/auth/login　（ダミーユーザーによるログイン）
+**説明**
 - username を受け取り、存在しない場合はダミーDBにユーザー登録する。
 - JWT アクセストークンを発行して返します。
 - トークンには `sub` としてユーザーIDを含み、有効期限は `.env` の `JWT_EXPIRE_MINUTES` により決定されます。
 
-### リクエスト
+**リクエスト**
+
 **Header**
-```http
+```text
 Content-Type: application/json
 ```
 **Body (JSON)**
@@ -181,7 +187,7 @@ Content-Type: application/json
 }
 ```
 
-### レスポンス
+**レスポンス**
 ```json
 {
   "access_token": "<jwt-token-string>",
@@ -195,36 +201,38 @@ Content-Type: application/json
 - token_type: "bearer" 固定
 - expires_in_seconds: トークンの残り有効期限（秒）
 
-### エラー例
+**エラー例**
 - 422 Unprocessable Entity（バリデーションエラー時）
 
 ---
 
-## GET /api/auth/me
-### 説明
+### GET /api/auth/me
+**説明**
 - 認証されたユーザー情報を返す API。
 - `Authorization: Bearer <JWT>` が必要。
 - トークンが不正・期限切れの場合は 401 を返します。
 
-### レスポンス
+**レスポンス**
 ```json
 {
   "id": "user1",
   "name": "Dummy User 1"
 }
 ```
-### エラー例
+
+**エラー例**
 - 401 Unauthorized（共通仕様を参照）
 
 ---
 
-## POST /api/favorites
-### 説明
+### POST /api/favorites
+**説明**
 - ログインユーザーのお気に入り銘柄を追加・削除する(リクエストしたシンボルが登録済なら削除するトグル形式)
 
-### リクエスト
+**リクエスト**
+
 **Header**
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
@@ -236,7 +244,8 @@ Content-Type: application/json
 }
 ```
 
-### レスポンス
+**レスポンス**
+
 - 追加後の例(7203.TとAAPLを登録)
 ```json
 {
@@ -247,6 +256,7 @@ Content-Type: application/json
   ]
 }
 ```
+
 - 削除後(全て削除された状態)
 ```json
 {
@@ -255,23 +265,25 @@ Content-Type: application/json
 }
 ```
 
-### エラー例
+**エラー例**
 - 401 Unauthorized（共通仕様を参照）
 - 422 Unprocessable Entity（バリデーションエラー時）
 
 ---
 
-## GET /api/favorites
-### 説明
+### GET /api/favorites
+**説明**
 - ログインユーザーのお気に入り一覧を取得
-### リクエスト
+
+**リクエスト**
+
 **Header**
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
 
-### レスポンス
+**レスポンス**
 ```json
 {
   "user_id": "user1",
@@ -282,9 +294,8 @@ Content-Type: application/json
 }
 ```
 
-### エラー例
+**エラー例**
 - 401 Unauthorized（共通仕様を参照）
 - 422 Unprocessable Entity（バリデーションエラー時）
-
 
 
