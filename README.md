@@ -1,9 +1,8 @@
 # 株価ビューワー （React + FastAPI / GCP Cloud Run）
 
-このプロジェクトは、  
-**「クラウド × API主体 × フロントエンド」を一体で扱えることを示すポートフォリオ**  
-として開発した株価ビューア Web アプリです。
-yfinance を用いて株価チャートを表示する Web アプリケーションとなっています。  
+React + FastAPI を用いて構築した、Cloud Run デプロイ対応の株価ビューア Web アプリです。
+
+このプロジェクトは、ポートフォリオとして公開しています。
 
 ---
 
@@ -24,7 +23,7 @@ yfinance を用いて株価チャートを表示する Web アプリケーショ
 Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイなど、一連の開発フローを LLM と協働しながら進めました。  
 実装と改善を繰り返す形で、段階的にアプリを育てていく開発プロセスを経験することを目的としています。
 
-※ 開発プロセス全体で ChatGPT5.1 を活用しています。
+※ 開発プロセス全体で ChatGPT 5.1 を活用しています。
 
 ---
 
@@ -35,6 +34,8 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
 - lightweight-charts によるローソク足描画
 - お気に入り銘柄の保存・削除
 - Cloud Runへのデプロイ完了
+
+※ 認証はポートフォリオ用途のため、インメモリユーザーに対して JWT を発行する簡易実装です。
 
 ---
 
@@ -79,8 +80,10 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
   - JWT 認証によりユーザーごとにお気に入りが保持されます  
   - お気に入り一覧から銘柄をワンクリックでチャートを再表示できます
 
-- **5. ログアウト（暫定）**
+- **5. ログアウト**
 
+  ※ 開発者向けの暫定手段になります
+  
   現在ログアウト機能は未実装のため、ログアウトする場合は：
   1. ブラウザの開発者ツールを開く
   2. Application → Local Storage 下のアプリURL を開く
@@ -89,9 +92,12 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
   
   これでログアウト状態に戻れます。
 
-**注意点** 
-- 本アプリはポートフォリオ用途であり、高頻度アクセスや商用利用は想定していません  
-- yfinance の仕様上、取得できない銘柄コードもあります
+## ⚠️ 注意事項
+
+- 本アプリはポートフォリオ用途であり、商用サービスとしての利用は想定していません。
+- 株価データ取得には yfinance を利用しており、Yahoo! Finance の仕様変更や制限により動作が変わる可能性があります。
+- yfinance の仕様上、取得できない銘柄コードも存在します。
+
 
 ---
 
@@ -106,13 +112,22 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
 
 ---
 
+## 🔭 今後の拡張予定（検討中）
+
+- Firebase Auth などのマネージド認証への移行
+- Firestore / Cloud SQL などを用いた永続的なお気に入り保存
+- Cloud Build を用いた Cloud Run への CI/CD パイプライン構築
+
+
+---
+
 ### 🧰 技術スタック
 
 **フロントエンド**
 
 - React + TypeScript
 - Vite
-- lightweight-chartsによるローソク足チャートを表示
+- lightweight-charts によるローソク足チャートを表示
 
 **バックエンド**
 
@@ -123,7 +138,6 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
 
 - Cloud Run（アプリケーション実行）
 - Artifact Registry（コンテナイメージ管理）
-- Cloud Build（CI/CD 検討済み）
 
 ---
 
@@ -132,16 +146,18 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
 ```text
 stock-viewer/
   README.md
-  cloudbuild.yaml # Cloud Run用設定
   backend/        # FastAPI + yfinance
   frontend/       # React + TypeScript
-  infra/          # Dockerfile / docker-compose.dev.yml
-  docs/           # architecture.md / api.md / ai-notes.md
+  infra/          # Dockerfile.dev / Dockerfile.prod / docker-compose.dev.yml / cloudbuild.yaml
+  docs/           # architecture.md / api.md / ai-notes.md / dev-log.md
 ```
 
 ---
 
 ## 🐳 開発環境（Dev Container）
+### 前提環境
+- Docker / Docker Compose がインストールされていること
+- macOS + Colima 上で動作確認済み（他環境でも Docker が動けば基本的に再現可能）
 
 ### 開発コンテナの起動
 
@@ -171,123 +187,13 @@ npm run dev -- --host 0.0.0.0 --port 5173
 
 ---
 
-## 実装した手順について
+## 📑 実装手順（サマリー）
 
-※ 手順5のcloud run buildへの準備段階で各APIのエンドポイントに`/api`プレフィックスを付与しました。
+本プロジェクトは、機能単位で小さく区切り、PR ベースで段階的に開発を進めました。
+詳細な開発ログは `docs/dev-log.md` にまとめています。
 
-そのため手順1~4と手順5以降では各APIのURLが異なります。ここでは実装した手順として前のURLを残しておきます。
-
-<details>
-<summary> 手順1 開発用コンテナの作成 </summary>
-  
-参考: [PR #1 – feat: setup unified dev container for Python and Node development](https://github.com/koki-ymd/stock-viewer/pull/1)
-- Dockerfile.dev、docker-compose.dev.ymlの作成
-- Dockerfile.devはpython・node.jsを含める開発用コンテナ
-- FastAPI/yfinance用のrequirementsはこの段階では入れていない
-</details>
-
-<details>
-  <summary> 手順2 APIを返す小さなバックエンドの開発 </summary>
-
-  参考: [PR #3 - feat: add minimal FastAPI backend with requirements and main.py](https://github.com/koki-ymd/stock-viewer/pull/3)
-  - 本プロジェクトにおける最小のバックエンドを構成(FastAPI + yfinance)
-  - 実装した機能
-    - /health: アプリの生死を確認可能
-    - /stocks/{symbol}/history: 指定したsymbolの銘柄データを取得（ローソク足の情報を取得）
-    - /stocks/search: ダミー（今後、クエリで銘柄検索を可能にする予定）
-  - CORS設定
-    - 参考: [PR #8 - feat: enable CORS for frontend development](https://github.com/koki-ymd/stock-viewer/pull/8)
-    - viteの開発サーバー(`http://localhost:5173`)からのリクエストを許可した
-    - フロントが未実装の時のCORS確認方法 (ブラウザのDevToolsから簡単なFetchを試す)
-      ```
-      fetch("http://localhost:8000/health", {
-        method: "GET",
-      }).then(res => res.json()).then(console.log);
-      ```
-</details>
-
-<details>
-  <summary> 手順3 ダミー認証 & 株価をローソク足表示をするフロントエンドの開発</summary>
-
-  参考: [PR #7 - feat: add dummy login and minimal home navigation (with prep library install)](https://github.com/koki-ymd/stock-viewer/pull/7)
-  - ダミーログインページと最小のhomeページを作成し、ログイン->homeへの遷移を確認した
-
- 参考: [PR #19 - feat: add auth guard](https://github.com/koki-ymd/stock-viewer/pull/19)
- - 認証ガードの実装をした
- - 認証ラップコンポーネントパターンについて
-   - 認証済みか否かを判定するコンポーネントで、認証が必要なページをラッピングするパターン
-   - ユーザーがHome（認証が必要なページ）にアクセスした際、ログイン済みユーザーか否かを判定
-     - ログイン済みユーザーならHomeを返す
-     - ログインしていないユーザーなら/loginへの遷移を返す
-   - 認証済みか否かの判定処理を分離できるため、認証方法の変更がしやすい
-
-  参考: [PR #10 - feat: add home page features](https://github.com/koki-ymd/stock-viewer/pull/10)
-  - APIの取得を確認するため、機能を小さく実装
-    - 銘柄検索
-    - お気に入り銘柄の登録&検索(フロント内の変数に保存)
-    - 株価のローソク足チャート表示
-      - データ数を制限しているため、チャートのチルト・パン・ズームイン・ズームアウトを制限した
-</details>
-
-<details>
-  <summary> 手順4 JWT Login APIの実装 & 銘柄お気に入り機能 </summary>
-  認証はダミートークンを実装したのち、JWTに改良した
-  
-  参考: [PR #25 - feature: backend authentication](https://github.com/koki-ymd/stock-viewer/pull/25)
-  - backend側の認証機能の実装 (ダミートークン)
-    - ダミーユーザーの追加
-    - 固定ダミートークンを返すLogin APIの実装
-    - /auth/meで認証テスト可能　(/auth/meに認証ガードを付与)
-
-  参考: [PR #38 - feature: backend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/38)
-  参考: [PR #40 - feature: stocks auth guard (refs #26)](https://github.com/koki-ymd/stock-viewer/pull/40)
-  - backend側のJWT擬似認証の実装
-    - インメモリユーザー + JWT 発行（/auth/login）
-    - 認証ガードをJWTを用いるようにした　
-    - /stocks API に JWT 認証ガードを付与
-
-  参考: [PR #27 - feature: add favorites api](https://github.com/koki-ymd/stock-viewer/pull/27)
-  - お気に入りAPIの追加
-    - お気に入りダミーDBの作成(辞書型の変数で一時的なもの)
-    - /favorites に認証ガードを付与
-
-  参考: [PR #29 - feature: frontend auth with token](https://github.com/koki-ymd/stock-viewer/pull/29)
-  - フロントエンドのログインがバックエンドのLogin API(/auth/login)を叩きトークンを保存するようにした
-  - トークンの保存場所はlocalStorage
-
-  参考: [PR #30 - feature: frontend add favorites feature](https://github.com/koki-ymd/stock-viewer/pull/30)
-  - お気に入りAPIを叩いてユーザーに依存したお気に入りを取得するようにした
-  - トークンをAuthorization headerにつける共通関数の実装
-    - 認証が必要なAPIはこの関数を使用する
-
-  参考: [PR #41 - feature: frontend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/41)
-  - Login 画面から /auth/login を叩いて JWT を取得
-  - AuthContext で auth_token と有効期限を localStorage に保持
-  - client.ts 経由で Authorization ヘッダーを自動付与
-  - トークンの期限が切れたらログアウト(トークン、期限情報の削除のみ。画面リロードは行わない)
-    - ログアウトのタイミングは初期レンダーor手動によるアクション
-
-</details>
-
-
----
-
-## 🗂️ 詳細設計ドキュメント
-
-- `docs/architecture.md`  
-- `docs/api.md`  
-- `docs/ai-notes.md`  
-- `docs/deployment.md`（Cloud Run 手順予定）
-
-README では「全体像」「目的」「使い方」に絞り、  
-詳細な設計・理由・構成方針は docs に分離しています。
-
----
-
-## 📄 補足
-
-※ 将来的に .env を使用する場合は .env.example に必要な項目を追加します。
-- `.env` を利用する場合は `.env.example` に必要項目を追加  
-- 本アプリはポートフォリオ用途であり、商用サービスではありません（yfinance / Yahoo! Finance のデータ使用ポリシーに準拠）
-
----
+- **手順1**：開発用コンテナの作成（Dockerfile.dev / docker-compose.dev.yml）  
+- **手順2**：FastAPI の最小API構築（/health, /stocks/...）  
+- **手順3**：ダミー認証 + チャート表示フロント実装  
+- **手順4**：JWT 認証・お気に入り API / フロント対応  
+- **手順5**：Cloud Run ビルド対応・本番コンテナ構成の整備  
