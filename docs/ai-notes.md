@@ -1,135 +1,171 @@
-ChatGPTを用いて何をしたか書く
+# AI 活用ノート（ai-notes.md）
 
-### 2025-11-18
-- ChatGPTで開発手順の作成を行った
+このドキュメントは、本プロジェクトにおいて  
+**ChatGPT（GPT-5.1）をどのように活用したか**をまとめたものです。
 
----
-
-### 2025-11-19
-- 手順1として、Docker開発環境の準備を行った
-  - 参考: [PR #1 – feat: setup unified dev container for Python and Node development](https://github.com/koki-ymd/stock-viewer/pull/1)
-  - Dockerfile.devの出力を行った
-  - docker-compose.dev.ymlの出力を行った
-  - 出力したDockerfile.devがよくわからなかったので、それを理解するための実践型チュートリアルを作成した
-  - 出力したこれらのファイルはコンテナを作成した後、すぐに止まるコンテナだった
-  - 常駐できるようにdocker-compose.dev.ymlを改善した
-
-- 手順2として、最小のバックエンドを作成した
-  - 参考: [PR #3 - feat: add minimal FastAPI backend with requirements and main.py](https://github.com/koki-ymd/stock-viewer/pull/3)
-  - 参考: [PR #4 - docs: add initial API specification in api.md](https://github.com/koki-ymd/stock-viewer/pull/4)
-  - backendプロジェクトの初期化手順の生成を行った
-    - venv内にfastapi・uvicorn[standard]・yfinanceをインストールした
-    - requirement.txtを作成した
-  - 最小のFastAPIアプリとしてmain.pyを生成した
-    - health : アプリケーションの生死確認
-    - /stock/{symbol}/history : symbolで指定した銘柄のローソク足を取得可能
-    - /stocks/search : ダミー（今後、クエリで銘柄検索できる予定）
-  - uvicornを起動し、アプリを確認した
-  - ここで作成したAPIに基づいてapi.mdを更新した
+本アプリは、*コード生成だけでなく、設計・環境構築・デプロイ・ドキュメント整備に至るまで、全工程で AI を活用したプロジェクト*として構築しています。
 
 ---
 
-### 2025-11-20
-- 手順3の一部として、フロントエンドの骨子を作成した
-  - 参考: [PR #7 - feat: add dummy login and minimal home navigation (with prep library install)](https://github.com/koki-ymd/stock-viewer/pull/7)
-  - 参考: [PR #10 - feat: add home page features](https://github.com/koki-ymd/stock-viewer/pull/10)
-  - frontendプロジェクトの初期化手順の生成を行なった
-    - viteのテンプレート(React + TS)をインストールした
-    - viteサーバーを起動し、テンプレートが表示されることを確認した
-  - 簡易ログイン画面と最小限のホーム画面を作成し、ログイン->ホーム画面の遷移を確認した
-    - ログイン画面はダミー認証
-    - ホーム画面は「ログイン成功です」の文字を表示するページ
-  - React.jsとTSの強みについて確認した
-  - Homeの機能を小さく実装し、データの取得がうまくいっているかを確認した
-    - 銘柄検索によるデータ取得
-    - データのリスト表示
-    - お気に入り銘柄の登録 (インメモリ)
-  - データを取得する際、CORSの設定をしていなかったので、CORSの設定をした
-    - 参考: [PR #8 - feat: enable CORS for frontend development](https://github.com/koki-ymd/stock-viewer/pull/8)
-    - CORSの設定について、あらかじめ生成した手順には載っていなかった
-    - バックエンド側の実装として、手順2として実装した
+# 1. 使用した AI モデル
+
+- **ChatGPT GPT-5.1
+- 利用シーン
+  - 開発手順の生成
+  - 設計レビュー
+  - 実装コード生成
+  - Docker / Cloud Run の設定生成
+  - トラブルシューティング
+  - ドキュメント整備・文章構成
+  - 技術選定の相談
 
 ---
 
-### 2025-11-21
-- 手順3の一部として、認証ガードとローソク足チャートの表示を行った
-  - 認証ラップコンポーネントパターンによる認証ガードを実装した
-    - 参考: [PR #19 - feat: add auth guard](https://github.com/koki-ymd/stock-viewer/pull/19)
-    - コードはChagGPTが生成
-  
-  - ローソク足チャートの表示を実装した
-    - 参考: [PR #18 - feat: implement candlestick chart component (refs #14)](https://github.com/koki-ymd/stock-viewer/pull/18)
-    - ライブラリをrechartsからlightweight-chartsに変更
-      - rechartsではローソク足の表示に向かなかった
-      - 手順生成の段階でローソク足について言及せず、単にチャート表示としていたことで、rechartsを使う想定になっていた
-    - lighrweight-cahartsでは、デフォルトでチルト・パン・ズームイン・ズームアウトができる
-    - 現状、取得するデータの範囲が短期間でチャートを動かしても意味がないので、操作を無効にした
-    - コードはChatGPTが生成
+# 2. 要件定義・設計フェーズでの AI 活用
+
+- アプリの実装手順（手順1〜5）の作成  
+- API 主体アプリとしての全体設計  
+- ディレクトリ構成の設計（backend / frontend / infra / docs）
+- FastAPI・React・Cloud Run を組み合わせたアーキテクチャの案出し  
+- 各手順に基づく PR 粒度の整理  
+- README / architecture.md の構成・内容調整  
+- 技術選定の支援
+  - lightweight-charts の選定理由整理
+  - FastAPI と Cloud Run の相性説明
+  - SPA + API を単一コンテナで配信する方式の説明
 
 ---
 
-### 2025-11-22
-- 手順4の一部として認証機能の追加を行なった
-  - 参考: [PR #25 - feature: backend authentication](https://github.com/koki-ymd/stock-viewer/pull/25)
-  - ダミーユーザーの追加
-  - 固定ダミートークンを返すLoginAPIの作成
-  - 認証ガードの作成
-    - 初め、エンドポイントのシグネチャにHeaderでAuthorizationを受け取るプログラムだった
-    - 認証ガードのためDpends(get_current_user)にしたら、AuthorizationがSwaggerUIに認識されず、curlコマンドにAuthorizationが含まれなかった
-    - （この時手元のAuthorizationヘッダーを含んだcurlコマンドは意図通りに機能した）
-    - HTTPBaererセキュリティスキームを使用することで、SwaggerUIからトークンを紐付けたAuthorizationヘッダーを作成することができるようになった
-  - コードはChatGPTが生成
+# 3. 開発環境構築（Docker / Git）での AI 活用
+
+### Docker 運用
+- `Dockerfile.dev` の初期生成
+- `docker-compose.dev.yml` の改善（常駐可能化、ホットリロード対応）
+- Python + Node を統合した Dev Container の環境調整
+- Colima 上でのトラブル対応
+- `.dockerignore` の最小構成  
+- 本番用 `Dockerfile.prod` の構成案作成（マルチステージビルド）
+
+### Git 運用
+- PR の粒度と命名規則の助言
+- README に沿ったコミット方針の整理
+- feature ブランチ戦略の相談
 
 ---
 
-### 2025-11-23
-- 手順4の一部として、お気に入りAPIの追加、フロントでのログイン後トークン保存、お気に入り機能の追加を行なった
-  - お気に入りAPIの追加
-    - 参考: [PR #27 - feature: add favorites api](https://github.com/koki-ymd/stock-viewer/pull/27)
-    - お気に入りの保存はユーザーをKey, 銘柄リストをvalueとする辞書型の変数をダミーDBとして実装している
-    - コードはChatGPTが生成
+# 4. バックエンド（FastAPI）での AI 活用
 
-  - フロントエンドでのログイン後トークン保存
-    - 参考：[PR #29 - feature: frontend auth with token](https://github.com/koki-ymd/stock-viewer/pull/29)
-    - LoginAPIを叩くとダミートークンが返ってくるので、それをlocalStorageに保存
-    - コードはChatGPTが生成
-
-  - フロントエンドでのお気に入り機能
-    - 参考: [PR #30 - feature: frontend add favorites feature](https://github.com/koki-ymd/stock-viewer/pull/30)
-    - フロントの変数に保存していたものをFavoriteAPIを叩くようにした
-    - FavoriteAPIが認証が必要なので、Authonticated HeaderにBaerer <token>をつける関数を作成した
-    - コードはChatGPTが生成
+- FastAPI の最小構成生成（health / stocks API）
+- yfinance の API 設計
+- CORS 対応
+- ルーター分割・サービス層・スキーマ層の構成提案
+- ダミーユーザー実装（インメモリ DB）
+- JWT 認証の実装コード生成
+- `Depends(get_current_user)` を利用した認証ガード
+- SwaggerUI に Authorization が反映されない問題の調査・解決
+- API 仕様（api.md）の改善
 
 ---
 
-### 2025-11-24
-- 手順4の一部としてダミートークンによる擬似認証をJWTによる擬似認証に変えた
-  - JWTの発行および検証
-    - 参考: [PR #38 - feature: backend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/38)
-    - コードはChatGPTが生成
-  - /stock/*にも認証ガードを設定
-    - 参考: [PR #40 - feature: stocks auth guard (refs #26)](https://github.com/koki-ymd/stock-viewer/pull/40)
+# 5. フロントエンド（React + TS）での AI 活用
 
-  - フロントエンドのJWT対応
-    - 参考: [PR #41 - feature: frontend auth jwt](https://github.com/koki-ymd/stock-viewer/pull/41)
-    - トークンの期限が切れたらログアウト(トークン、期限情報の削除のみ。画面リロードは行わない)
-      - タイミングは初期レンダーor手動によるアクション
-    - コードはChatGPTが生成
-  
-- 手順5のCloud Runへのデプロイ準備を行なった
-  - 参考: [PR #44 - feature: prepare-cloud-run-build](https://github.com/koki-ymd/stock-viewer/pull/44)
-  - 開発・本番環境を切り替えるプログラム
-    - main.pyで行う環境を切り替える
-      - 開発環境ではCORSの設定を行う
-      - 本番環境ではフロントのファイルをルート(`/`)にマウント
-    - 実行環境用環境変数、CORS設定用のフロントエンドオリジン環境変数の用意
-      - 開発環境ではdocker-compose.dev.ymlでこれらの値を指定
-      - 本番環境ではCloud Runのデプロイ時やコンソール画面から設定できる
-  - 各APIに`/api`プレフィックスを付与した
-    - バックとフロントを一つのコンテナにして配信するため、URLのコンフリクトを防ぐ目的
-  - 本番用Dockerfileの作成
-  - .dockerignoreの作成
-    - 本番環境をbuildする際に、余分なものを無視して早くビルドするため・ゴミを減らすため
-    - コードはChatGPTが生成
-  - 開発環境で.dockerignoreの影響を受けないようにした
-    - プロジェクトルートを/appにマウントしていたのを、フロント・バック、それぞれをマウントするようにした
+- Vite + React + TypeScript の初期構成生成
+- React Router のルーティング構成（/login /home）
+- 認証 UI（ログインフォーム）の生成
+- AuthContext / ProtectedRoute の生成
+- JWT を扱うフロント側のロジック設計
+- lightweight-charts を使ったローソク足チャート生成
+- データ整形・UI 実装のアドバイス
+- API クライアントの共通化（Bearer トークン付与）
+
+---
+
+# 6. インフラ・デプロイ（GCP Cloud Run）での AI 活用
+
+- Cloud Run デプロイ手順（deployment.md）の作成  
+  - Artifact Registry の構築
+  - Cloud Build（cloudbuild.yaml）の記述
+  - dev/prod の 2 環境の運用設計
+  - gcloud コマンドの生成
+- Cloud Run の設定値の説明
+  - min-instances
+  - max-instances
+  - concurrency
+  - ポート設定（FastAPI 8000 / Cloud Run $PORT）
+- FastAPI + React SPA の単一コンテナ設計
+  - StaticFiles 配信
+  - SPA fallback の index.html 返却
+
+---
+
+# 7. ドキュメント整備での AI 活用
+
+### README.md
+- プロジェクトの目的整理
+- 公開 URL / 機能一覧 / 技術スタックの構成整理
+- 今後の拡張予定の文章改善
+
+### architecture.md
+- 全体アーキテクチャ図（Mermaid）
+- Cloud Run 上でのルーティング（SPA 配信）の説明
+- 認証処理と Depends の依存関係図
+
+### api.md
+- REST API の仕様書の整備（エンドポイント一覧、例、エラー仕様）
+
+### deployment.md
+- Cloud Run デプロイ手順の生成
+- dev/prod 運用の意図説明
+
+### dev-log.md
+- 作業ログの整理と構造化
+
+---
+
+# 8. トラブルシューティング・深堀り調査での AI 活用
+
+- CORS が機能しない問題の調査
+- SwaggerUI で Authorization が付かない問題の分析
+- Lightweight-charts の挙動（チルト・パン・ズーム無効化）
+- Dockerfile キャッシュとレイヤー構造の理解
+- Cloud Run のコールドスタート挙動
+- React Router の SPA fallback の仕組み
+- yfinance の仕様確認
+- fastapi の static file ルーティング調査
+
+---
+
+# 9. ChatGPT 活用による効果
+
+- **開発スピード向上**  
+  環境構築からデプロイまでの道筋を短時間で構築できた。
+
+- **知識の補完**  
+  Cloud Run / lightweight-charts / JWT など初見技術を実務レベルで理解できた。
+
+- **設計品質の向上**  
+  API 設計、アーキテクチャ、ドキュメント品質の底上げに寄与。
+
+- **継続的な改善サイクルの実現**  
+  PR ベースで段階的に機能を積み上げるプロセスを実現できた。
+
+---
+
+# 10. まとめ
+
+本プロジェクトでは、  
+**「AI を利用した一貫したソフトウェア開発プロセス」** を構築し、  
+設計 → 実装 → デプロイ → ドキュメント化 までを  
+ChatGPT と協働して進めました。
+
+単なるコード生成ではなく、
+
+- 設計支援  
+- GCP インフラ構築  
+- Docker 運用  
+- Git 運用  
+- ドキュメント改善  
+- トラブル解決  
+
+を AI に依頼し、  
+「AI と人間が協働して一つの Web アプリを作るプロセス」を 形として残しています。
