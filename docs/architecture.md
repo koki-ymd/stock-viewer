@@ -218,7 +218,8 @@ Content-Type: application/json
 レスポンス例：
 ```json
 {
-  "user_id": "user1"
+  "id": "user1",
+  "name": "user1"
 }
 ```
 
@@ -474,3 +475,4 @@ sequenceDiagram
 - Cloud Build による CI/CD  
 - Firebase Auth への移行  
 - 永続 DB（Firestore / Cloud SQL）  
+
