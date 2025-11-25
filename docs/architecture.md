@@ -27,7 +27,7 @@
 - yfinance による株価データ取得  
 - Lightweight Charts によるローソク足描画  
 - JWT 認証（インメモリユーザー + 自前 JWT）  
-- お気に入り銘柄の登録・一覧取得  
+- お気に入り銘柄の登録・削除・一覧取得  
 - 株価 API・お気に入り API は認証必須
 
 ### 2-2. 今後の予定（将来の拡張）
@@ -475,4 +475,5 @@ sequenceDiagram
 - Cloud Build による CI/CD  
 - Firebase Auth への移行  
 - 永続 DB（Firestore / Cloud SQL）  
+
 
