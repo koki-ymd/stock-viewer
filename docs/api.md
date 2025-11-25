@@ -87,7 +87,7 @@ FastAPI + yfinance によるバックエンド API の仕様。
 
 **リクエストヘッダ**
 
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
@@ -141,7 +141,7 @@ Content-Type: application/json
 
 **リクエストヘッダ**
 
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
@@ -177,7 +177,7 @@ Content-Type: application/json
 **リクエスト**
 
 **Header**
-```http
+```text
 Content-Type: application/json
 ```
 **Body (JSON)**
@@ -232,7 +232,7 @@ Content-Type: application/json
 **リクエスト**
 
 **Header**
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
@@ -278,7 +278,7 @@ Content-Type: application/json
 **リクエスト**
 
 **Header**
-```http
+```text
 Authorization: Bearer <JWT access_token>
 Content-Type: application/json
 ```
@@ -297,4 +297,5 @@ Content-Type: application/json
 **エラー例**
 - 401 Unauthorized（共通仕様を参照）
 - 422 Unprocessable Entity（バリデーションエラー時）
+
 
