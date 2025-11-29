@@ -27,6 +27,16 @@ Docker の開発環境、GitHub のブランチ運用、Cloud Run デプロイ�
 
 ---
 
+## 📘 開発プロセスの詳細（Zenn 記事）
+
+LLM（ChatGPT）をどのように開発パートナーとして使い、一連の開発プロセスの中でどんな学びや反省があったかについては、
+以下の Zenn 記事に詳しくまとめています。
+
+- 実務未経験の状態から、LLMを使って一連のWebアプリ開発プロセスを経験してみた  
+  [https://zenn.dev/watermelon/articles/97a1c5bf5f3875](https://zenn.dev/watermelon/articles/97a1c5bf5f3875)
+
+---
+
 ## MVP（完成スコープ）
 
 - JWT 認証（インメモリユーザー）
