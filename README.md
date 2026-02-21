@@ -52,9 +52,9 @@ LLM（ChatGPT）をどのように開発パートナーとして使い、一連�
 ## 🔗 公開 URL（Cloud Run）
 
 **デモ環境（ポートフォリオ公開用）**  
-[https://stock-viewer-210324721960.asia-northeast1.run.app/](https://stock-viewer-210324721960.asia-northeast1.run.app/)
+~~[https://stock-viewer-210324721960.asia-northeast1.run.app/](https://stock-viewer-210324721960.asia-northeast1.run.app/)~~
 
-※ この URL は閲覧用の安定版です。開発用の環境とは分離しています。
+※ 非公開にしました
 
 ---
 
